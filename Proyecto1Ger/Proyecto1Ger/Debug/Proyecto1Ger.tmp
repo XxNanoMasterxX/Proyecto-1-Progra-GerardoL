@@ -1,0 +1,44 @@
+<ASSEMBLER_INFO>
+ <VERSION>2.2.8</VERSION>
+ <DEVICE>"ATmega328P"</DEVICE>
+ <WORKING_DIR>C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\Debug</WORKING_DIR>
+ <INCLUDE_PATH>
+  <DIR>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc</DIR>
+  <DIR>C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avrassembler\Include</DIR>
+  <DIR></DIR>
+ </INCLUDE_PATH>
+ <SOURCE_FILE>C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm</SOURCE_FILE>
+ <INCLUDED_FILES>
+  <FILE>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc</FILE>
+  <FILE>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\M328Pdef.inc</FILE>
+ </INCLUDED_FILES>
+ <OBJECT_FILES>
+  <FILE>C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\Debug\Proyecto1Ger.obj</FILE>
+ </OBJECT_FILES>
+ <HEX_FILES>
+  <FILE>Proyecto1Ger.hex</FILE>
+ </HEX_FILES>
+ <OUTPUT_FILES>
+  <FILE>Proyecto1Ger.map</FILE>
+  <FILE>Proyecto1Ger.lss</FILE>
+ </OUTPUT_FILES>
+ <LABELS>
+  <SETUP_GEN><FILE>C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm</FILE><LINE>17</LINE></SETUP_GEN>
+  <DISP_LGC><FILE>C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm</FILE><LINE>138</LINE></DISP_LGC>
+  <SW_CNT><FILE>C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm</FILE><LINE>78</LINE></SW_CNT>
+  <tab7seg><FILE>C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm</FILE><LINE>24</LINE></tab7seg>
+  <in_tim0><FILE>C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm</FILE><LINE>172</LINE></in_tim0>
+  <in_tim2><FILE>C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm</FILE><LINE>179</LINE></in_tim2>
+  <loop><FILE>C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm</FILE><LINE>75</LINE></loop>
+  <Disp_Select><FILE>C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm</FILE><LINE>119</LINE></Disp_Select>
+  <hora2><FILE>C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm</FILE><LINE>109</LINE></hora2>
+  <fini><FILE>C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm</FILE><LINE>125</LINE></fini>
+  <dec_min><FILE>C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm</FILE><LINE>147</LINE></dec_min>
+  <table_loop><FILE>C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm</FILE><LINE>186</LINE></table_loop>
+  <hora><FILE>C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm</FILE><LINE>154</LINE></hora>
+  <dec_hora><FILE>C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm</FILE><LINE>161</LINE></dec_hora>
+  <disp_fini><FILE>C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm</FILE><LINE>168</LINE></disp_fini>
+  <table_loop1><FILE>C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm</FILE><LINE>189</LINE></table_loop1>
+  <tab_fini><FILE>C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm</FILE><LINE>195</LINE></tab_fini>
+ </LABELS>
+</ASSEMBLER_INFO>
