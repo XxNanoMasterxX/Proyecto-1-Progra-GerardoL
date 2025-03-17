@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm Sun Mar 16 09:27:23 2025
+AVRASM ver. 2.2.8  C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm Sun Mar 16 20:54:37 2025
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
 C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm(8): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\M328Pdef.inc'
@@ -1040,18 +1040,19 @@ C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm(8)
                                  
                                  .dseg
                                  .org 0x0100
-000100                           MODO: .byte 1
-000101                           estado_anterior: .byte 1
+000100                           DigSelect: .byte 1
+000101                           MedioS: .byte 1
+                                 
                                  
                                  .cseg
                                  .org 0x0000
 000000 c021                      rjmp SETUP_GEN
                                  .org PCI0addr
-000006 940c 0198                 jmp PIN_CHANGE
+000006 940c 01cf                 jmp PIN_CHANGE
                                  .org OVF2addr
-000012 940c 0147                 jmp DISP_LGC
+000012 940c 017e                 jmp DISP_LGC
                                  .org OVF0addr //Timer0, Overfloq
-000020 940c 0073                 jmp SW_CNT
+000020 940c 0077                 jmp SW_CNT
                                  
                                  
                                  
@@ -1076,475 +1077,654 @@ C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm(8)
 00002f e800                      	ldi r16, (1 << CLKPCE)
 000030 9300 0061                 	sts CLKPR, r16 //Hora de prescaler hermano
 000032 e004                      	ldi r16, 0b00000100
-                                 	;sts CLKPR, r16 // Asi es viejo, prescaler F_cpu = 1MHz
+000033 9300 0061                 	sts CLKPR, r16 // Asi es viejo, prescaler F_cpu = 1MHz
                                  
-000033 940e 018c                 	call in_tim0
-000035 940e 0191                 	call in_tim2
+000035 940e 01c3                 	call in_tim0
+000037 940e 01c8                 	call in_tim2
                                  
-000037 e001                      	ldi r16, 0x01
-000038 9300 006e                 	sts TIMSK0, r16
-00003a 9300 0070                 	sts TIMSK2, r16
+000039 e001                      	ldi r16, 0x01
+00003a 9300 006e                 	sts TIMSK0, r16
+00003c 9300 0070                 	sts TIMSK2, r16
                                  
-00003c e001                      	ldi r16, 0x01
-00003d 9300 0068                 	sts PCICR, R16
-00003f e101                      	ldi r16, 0b00010001
-000040 9300 006b                 	sts PCMSK0, r16
+00003e e001                      	ldi r16, 0x01
+00003f 9300 0068                 	sts PCICR, R16
+000041 e10f                      	ldi r16, 0b00011111
+000042 9300 006b                 	sts PCMSK0, r16
                                  
-000042 e4ee                      	LDI ZL, LOW(tab7seg<<1)
-000043 e0f0                      	LDI ZH, HIGH(tab7seg<<1)
-000044 9114                      	LPM R17, Z // Se carga el valor inicial de z hacia el port, este siendo 0.
-000045 2e21                      	MOV R2, R17
-000046 2e31                      	MOV R3, R17
-000047 2e41                      	MOV R4, R17
-000048 2e51                      	MOV R5, R17
-000049 2ea1                      	MOV R10, R17
-00004a 2ec1                      	MOV R12, R17
+000044 e4ee                      	LDI ZL, LOW(tab7seg<<1)
+000045 e0f0                      	LDI ZH, HIGH(tab7seg<<1)
+000046 9114                      	LPM R17, Z // Se carga el valor inicial de z hacia el port, este siendo 0.
+000047 2e21                      	MOV R2, R17
+000048 2e31                      	MOV R3, R17
+000049 2e41                      	MOV R4, R17
+00004a 2e51                      	MOV R5, R17
+00004b 2ea1                      	MOV R10, R17
+00004c 2ec1                      	MOV R12, R17
                                  
-00004b e000                      	ldi r16, 0x00
-00004c b904                      	out ddrb, r16
-00004d 9a38                      	sbi DDRC, 0
-00004e 9a39                      	sbi DDRC, 1
-00004f 9a3a                      	sbi DDRC, 2
-000050 9a3b                      	sbi DDRC, 3
-000051 ef0f                      	ldi r16, 0xff
-000052 b905                      	out portb, r16
-000053 b90a                      	out ddrd, r16
-000054 9a40                      	sbi portc, 0
-000055 9841                      	cbi portc, 1
-000056 9842                      	cbi portc, 2
-000057 9843                      	cbi portc, 3
+00004d e000                      	ldi r16, 0x00
+00004e b904                      	out ddrb, r16
+00004f 9a38                      	sbi DDRC, 0
+000050 9a39                      	sbi DDRC, 1
+000051 9a3a                      	sbi DDRC, 2
+000052 9a3b                      	sbi DDRC, 3
+000053 ef0f                      	ldi r16, 0xff
+000054 b905                      	out portb, r16
+000055 b90a                      	out ddrd, r16
+000056 9a40                      	sbi portc, 0
+000057 9841                      	cbi portc, 1
+000058 9842                      	cbi portc, 2
+000059 9843                      	cbi portc, 3
                                  
-000058 e800                      	ldi r16, 0b10000000
-000059 2e60                      	mov r6, r16
-00005a e006                      	ldi r16, 0x06
-00005b 2e90                      	mov r9, r16
-00005c 2eb0                      	mov r11, r16
-00005d ef0f                      	ldi r16, 0xff
-00005e 9300 0101                 	sts estado_anterior, r16
-000060 e001                      	ldi r16, 0x01
-000061 e020                      	ldi r18, 0x00
-000062 e030                      	ldi r19, 0x00
-000063 e040                      	ldi r20, 0x00
-000064 e050                      	ldi r21, 0x00
-000065 e060                      	ldi r22, 0x00
-000066 e070                      	ldi r23, 0x00
-000067 e080                      	ldi r24, 0x00
-000068 e090                      	ldi r25, 0x00
-000069 e0a1                      	ldi r26, 0x01 ; Dia
-00006a e0b0                      	ldi r27, 0x00 ; Dec_Dia
-00006b e0c1                      	ldi r28, 0x01 ; Mes
-00006c e0d0                      	ldi r29, 0x00 ; Decima de Mes
-00006d 2e79                      	mov r7, r25
-00006e 2e89                      	mov r8, r25
-00006f 2ee0                      	mov r14, r16
-000070 9478                      	sei
+00005a e800                      	ldi r16, 0b10000000
+00005b 2e60                      	mov r6, r16
+00005c e006                      	ldi r16, 0x06
+00005d 2e90                      	mov r9, r16
+00005e 2eb0                      	mov r11, r16
+00005f e001                      	ldi r16, 0x01
+000060 9300 0100                 	sts DigSelect, r16
+000062 e020                      	ldi r18, 0x00
+000063 9320 0101                 	sts MedioS, r18
+000065 e030                      	ldi r19, 0x00
+000066 e040                      	ldi r20, 0x00
+000067 e050                      	ldi r21, 0x00 ; Minuto
+000068 e060                      	ldi r22, 0x00 ; Dec_Minuto
+000069 e070                      	ldi r23, 0x00 ; Hora
+00006a e080                      	ldi r24, 0x00 ; Dec_Hora
+00006b e090                      	ldi r25, 0x00
+00006c e0a1                      	ldi r26, 0x01 ; Dia
+00006d e0b0                      	ldi r27, 0x00 ; Dec_Dia
+00006e e0c1                      	ldi r28, 0x01 ; Mes
+00006f e0d0                      	ldi r29, 0x00 ; Decima de Mes
+000070 2e79                      	mov r7, r25
+000071 2e89                      	mov r8, r25
+000072 2ee0                      	mov r14, r16
+000073 2ef9                      	mov r15, r25
+000074 9478                      	sei
                                  
                                  loop:
-000071 940c 0071                 	jmp loop
+000075 940c 0075                 	jmp loop
                                  
                                  SW_CNT:
-000073 eb22                      	ldi r18, 178
-000074 bd26                      	out TCNT0, r18
-000075 9533                      	inc r19
-000076 3c38                      	cpi r19, 200 ; Segundo
-000077 f561                      	brne escape
+000077 eb22                      	ldi r18, 178
+000078 bd26                      	out TCNT0, r18
+000079 9533                      	inc r19
+00007a 3634                      	cpi r19, 100
+00007b f439                      	brne segundos
+00007c 92ff                      	push r15
+00007d 24ff                      	clr r15
+00007e 94f3                      	inc r15
+00007f 92f0 0101                 	sts MedioS, r15
+000081 24ff                      	clr r15
+000082 90ff                      	pop r15
+                                 	segundos:
+000083 3c38                      	cpi r19, 200 ; Segundo
+000084 f571                      	brne escape
+000085 92ff                      	push r15
+000086 24ff                      	clr r15
+000087 92f0 0101                 	sts MedioS, r15
+000089 90ff                      	pop r15
+00008a 2733                      	clr r19
+00008b 9543                      	inc r20
+00008c 334c                      	cpi r20, 60 ; Minutos
+00008d f529                      	brne escape
                                  
-                                 	
+00008e 6091                      	sbr r25, 1
+00008f 2744                      	clr r20
+000090 9553                      	inc r21
+000091 305a                      	cpi r21, 10 ; Decimas de minutos
+000092 f501                      	brne escape
                                  
-000078 2733                      	clr r19
-000079 940c 009d                 	jmp temporal
+000093 6092                      	sbr r25, 2
+000094 2755                      	clr r21
+000095 9563                      	inc r22
+000096 3066                      	cpi r22, 6 ; Horas
+000097 f4d9                      	brne escape
                                  
-00007b 9543                      	inc r20
-00007c 334c                      	cpi r20, 60 ; Minutos
-00007d f531                      	brne escape
+000098 3082                      	cpi r24, 2
+000099 f051                      	breq hora2
+00009a 6094                      	sbr r25, 4
+00009b 2766                      	clr r22
+00009c 9573                      	inc r23
+00009d 307a                      	cpi r23, 10 ; Decimas de horas
+00009e f4a1                      	brne escape
                                  
-00007e 6091                      	sbr r25, 1
-00007f 2744                      	clr r20
-000080 9553                      	inc r21
-000081 305a                      	cpi r21, 10 ; Decimas de minutos
-000082 f509                      	brne escape
-                                 
-000083 6092                      	sbr r25, 2
-000084 2755                      	clr r21
-000085 9563                      	inc r22
-000086 3066                      	cpi r22, 6 ; Horas
-000087 f4e1                      	brne escape
-                                 
-000088 3082                      	cpi r24, 2
-000089 f051                      	breq hora2
-00008a 6094                      	sbr r25, 4
-00008b 2766                      	clr r22
-00008c 9573                      	inc r23
-00008d 307a                      	cpi r23, 10 ; Decimas de horas
-00008e f4a9                      	brne escape
-                                 
-00008f 6098                      	sbr r25, 8
-000090 2777                      	clr r23
-000091 9583                      	inc r24
-000092 940c 011b                 	jmp Disp_Select
+00009f 6098                      	sbr r25, 8
+0000a0 2777                      	clr r23
+0000a1 9583                      	inc r24
+0000a2 940c 012a                 	jmp Disp_Select
                                  	hora2:
-000094 6094                      	sbr r25, 4
-000095 2766                      	clr r22
-000096 9573                      	inc r23
-000097 3074                      	cpi r23, 4 ; Decimas de horas
-000098 f459                      	brne escape
+0000a4 6094                      	sbr r25, 4
+0000a5 2766                      	clr r22
+0000a6 9573                      	inc r23
+0000a7 3074                      	cpi r23, 4 ; Decimas de horas
+0000a8 f451                      	brne escape
                                  	// Dia y Mes increase
-000099 6098                      	sbr r25, 8
-00009a 6190                      	sbr r25, 16
-00009b 2777                      	clr r23
-00009c 2788                      	clr r24
-                                 				temporal:
-00009d 6190                      				sbr r25, 16
-00009e fdc3                      	sbrc r28, 3 ; Check de mes
-00009f c045                      	rjmp Mes_Alto
-0000a0 fdd0                      	sbrc r29, 0
-0000a1 c043                      	rjmp Mes_Alto
-0000a2 940c 00a6                 	jmp Mes_bajo
+0000a9 6098                      	sbr r25, 8
+0000aa 6190                      	sbr r25, 16
+0000ab 2777                      	clr r23
+0000ac 2788                      	clr r24
+0000ad fdc3                      	sbrc r28, 3 ; Check de mes
+0000ae c045                      	rjmp Mes_Alto
+0000af fdd0                      	sbrc r29, 0
+0000b0 c043                      	rjmp Mes_Alto
+0000b1 940c 00b5                 	jmp Mes_bajo
                                  
                                  			escape:
-0000a4 940c 011b                 			jmp Disp_Select
+0000b3 940c 012a                 			jmp Disp_Select
                                  
                                  	Mes_bajo:
-0000a6 fdc0                      	sbrc r28, 0
-0000a7 c029                      	rjmp bajo_impar
+0000b5 fdc0                      	sbrc r28, 0
+0000b6 c029                      	rjmp bajo_impar
                                  	; meses bajos, pares
-0000a8 30c2                      		cpi r28, 0x02
-0000a9 f0a1                      		breq febrero
+0000b7 30c2                      		cpi r28, 0x02
+0000b8 f0a1                      		breq febrero
                                  		; Meses pares que no son febrero
-0000aa 30b3                      		cpi r27, 3
-0000ab f041                      		breq Month_Inc_Pl
-0000ac 95a3                      		inc r26
-0000ad 30aa                      		cpi r26, 10
-0000ae f7a9                      		brne escape
-0000af 27aa                      		clr r26
-0000b0 95b3                      		inc r27
-0000b1 6290                      		sbr r25, 32
-0000b2 940c 011b                 		jmp Disp_Select
+0000b9 30b3                      		cpi r27, 3
+0000ba f041                      		breq Month_Inc_Pl
+0000bb 95a3                      		inc r26
+0000bc 30aa                      		cpi r26, 10
+0000bd f7a9                      		brne escape
+0000be 27aa                      		clr r26
+0000bf 95b3                      		inc r27
+0000c0 6290                      		sbr r25, 32
+0000c1 940c 012a                 		jmp Disp_Select
                                  
                                  			
                                  
                                  		Month_Inc_Pl:
-0000b4 95a3                      		inc r26
-0000b5 30a1                      		cpi r26, 1
-0000b6 f769                      		brne escape
-0000b7 e0a1                      		ldi r26, 0x01
-0000b8 27bb                      		clr r27
-0000b9 95c3                      		inc r28
-0000ba 6290                      		sbr r25, 32
-0000bb 6490                      		sbr r25, 64
-0000bc 940c 011b                 		jmp Disp_Select
+0000c3 95a3                      		inc r26
+0000c4 30a1                      		cpi r26, 1
+0000c5 f769                      		brne escape
+0000c6 e0a1                      		ldi r26, 0x01
+0000c7 27bb                      		clr r27
+0000c8 95c3                      		inc r28
+0000c9 6290                      		sbr r25, 32
+0000ca 6490                      		sbr r25, 64
+0000cb 940c 012a                 		jmp Disp_Select
                                  
                                  		febrero:
-0000be 95a3                      		inc r26
-0000bf 30b2                      		cpi r27, 2
-0000c0 f039                      		breq feb_fini
-0000c1 30aa                      		cpi r26, 10
-0000c2 f709                      		brne escape
-0000c3 27aa                      		clr r26
-0000c4 95b3                      		inc r27
-0000c5 6290                      		sbr r25, 32
-0000c6 30b2                      		cpi r27, 2
-0000c7 f6e1                      		brne escape
+0000cd 95a3                      		inc r26
+0000ce 30b2                      		cpi r27, 2
+0000cf f039                      		breq feb_fini
+0000d0 30aa                      		cpi r26, 10
+0000d1 f709                      		brne escape
+0000d2 27aa                      		clr r26
+0000d3 95b3                      		inc r27
+0000d4 6290                      		sbr r25, 32
+0000d5 30b2                      		cpi r27, 2
+0000d6 f6e1                      		brne escape
                                  		feb_fini:
-0000c8 30a9                      		cpi r26, 9
-0000c9 f6d1                      		brne escape
-0000ca e0a1                      		ldi r26, 0x01
-0000cb 27bb                      		clr r27
-0000cc 95c3                      		inc r28
-0000cd 6290                      		sbr r25, 32
-0000ce 6490                      		sbr r25, 64
-0000cf 940c 011b                 		jmp Disp_Select
+0000d7 30a9                      		cpi r26, 9
+0000d8 f6d1                      		brne escape
+0000d9 e0a1                      		ldi r26, 0x01
+0000da 27bb                      		clr r27
+0000db 95c3                      		inc r28
+0000dc 6290                      		sbr r25, 32
+0000dd 6490                      		sbr r25, 64
+0000de 940c 012a                 		jmp Disp_Select
                                  
                                  	bajo_impar:
-0000d1 30b3                      		cpi r27, 3
-0000d2 f041                      		breq Month_Inc_Il
-0000d3 95a3                      		inc r26
-0000d4 30aa                      		cpi r26, 10
-0000d5 f671                      		brne escape
-0000d6 27aa                      		clr r26
-0000d7 95b3                      		inc r27
-0000d8 6290                      		sbr r25, 32
-0000d9 30ba                      		cpi r27, 10
-0000da f649                      		brne escape
+0000e0 30b3                      		cpi r27, 3
+0000e1 f041                      		breq Month_Inc_Il
+0000e2 95a3                      		inc r26
+0000e3 30aa                      		cpi r26, 10
+0000e4 f671                      		brne escape
+0000e5 27aa                      		clr r26
+0000e6 95b3                      		inc r27
+0000e7 6290                      		sbr r25, 32
+0000e8 30ba                      		cpi r27, 10
+0000e9 f649                      		brne escape
                                  
                                  
                                  		Month_Inc_Il:
-0000db 95a3                      		inc r26
-0000dc 30a2                      		cpi r26, 2
-0000dd f5e9                      		brne Disp_Select
-0000de e0a1                      		ldi r26, 0x01
-0000df 27bb                      		clr r27
-0000e0 95c3                      		inc r28
-0000e1 6290                      		sbr r25, 32
-0000e2 6490                      		sbr r25, 64
-0000e3 940c 011b                 		jmp Disp_Select
+0000ea 95a3                      		inc r26
+0000eb 30a2                      		cpi r26, 2
+0000ec f5e9                      		brne Disp_Select
+0000ed e0a1                      		ldi r26, 0x01
+0000ee 27bb                      		clr r27
+0000ef 95c3                      		inc r28
+0000f0 6290                      		sbr r25, 32
+0000f1 6490                      		sbr r25, 64
+0000f2 940c 012a                 		jmp Disp_Select
                                  
                                  
                                  	
                                  
                                  	Mes_Alto:
-0000e5 fdc0                      	sbrc r28, 0
-0000e6 c01b                      	rjmp alto_impar
-0000e7 30b3                      	cpi r27, 3
-0000e8 f041                      		breq Month_Inc_Ph
-0000e9 95a3                      		inc r26
-0000ea 30aa                      		cpi r26, 10
-0000eb f579                      		brne Disp_Select
-0000ec 27aa                      		clr r26
-0000ed 95b3                      		inc r27
-0000ee 6290                      		sbr r25, 32
-0000ef 30ba                      		cpi r27, 10
-0000f0 f551                      		brne Disp_Select
+0000f4 fdc0                      	sbrc r28, 0
+0000f5 c01b                      	rjmp alto_impar
+0000f6 30b3                      	cpi r27, 3
+0000f7 f041                      		breq Month_Inc_Ph
+0000f8 95a3                      		inc r26
+0000f9 30aa                      		cpi r26, 10
+0000fa f579                      		brne Disp_Select
+0000fb 27aa                      		clr r26
+0000fc 95b3                      		inc r27
+0000fd 6290                      		sbr r25, 32
+0000fe 30ba                      		cpi r27, 10
+0000ff f551                      		brne Disp_Select
                                  
                                  
                                  		Month_Inc_Ph:
-0000f1 95a3                      		inc r26
-0000f2 30a2                      		cpi r26, 2
-0000f3 f539                      		brne Disp_Select
-0000f4 e0a1                      		ldi r26, 0x01
-0000f5 27bb                      		clr r27
-0000f6 95c3                      		inc r28
-0000f7 6290                      		sbr r25, 32
-0000f8 6490                      		sbr r25, 64
-0000f9 30d1                      		cpi r29, 0x01
-0000fa f501                      		brne Disp_Select
-0000fb 30c3                      		cpi r28, 0x03
-0000fc f4f1                      		brne Disp_Select
-0000fd 27dd                      		clr r29
-0000fe e0c1                      		ldi r28, 0x01
-0000ff 6890                      		sbr r25, 128
-000100 940c 011b                 		jmp Disp_Select
+000100 95a3                      		inc r26
+000101 30a2                      		cpi r26, 2
+000102 f539                      		brne Disp_Select
+000103 e0a1                      		ldi r26, 0x01
+000104 27bb                      		clr r27
+000105 95c3                      		inc r28
+000106 6290                      		sbr r25, 32
+000107 6490                      		sbr r25, 64
+000108 30d1                      		cpi r29, 0x01
+000109 f501                      		brne Disp_Select
+00010a 30c3                      		cpi r28, 0x03
+00010b f4f1                      		brne Disp_Select
+00010c 27dd                      		clr r29
+00010d e0c1                      		ldi r28, 0x01
+00010e 6890                      		sbr r25, 128
+00010f 940c 012a                 		jmp Disp_Select
                                  
                                  	alto_impar:
-000102 30b3                      	cpi r27, 3
-000103 f041                      		breq Month_Inc_Ih
-000104 95a3                      		inc r26
-000105 30aa                      		cpi r26, 10
-000106 f4a1                      		brne Disp_Select
-000107 27aa                      		clr r26
-000108 95b3                      		inc r27
-000109 6290                      		sbr r25, 32
-00010a 30ba                      		cpi r27, 10
-00010b f479                      		brne Disp_Select
+000111 30b3                      	cpi r27, 3
+000112 f041                      		breq Month_Inc_Ih
+000113 95a3                      		inc r26
+000114 30aa                      		cpi r26, 10
+000115 f4a1                      		brne Disp_Select
+000116 27aa                      		clr r26
+000117 95b3                      		inc r27
+000118 6290                      		sbr r25, 32
+000119 30ba                      		cpi r27, 10
+00011a f479                      		brne Disp_Select
                                  
                                  
                                  		Month_Inc_Ih:
-00010c 95a3                      		inc r26
-00010d 30a1                      		cpi r26, 1
-00010e f461                      		brne Disp_Select
-00010f e0a1                      		ldi r26, 0x01
-000110 27bb                      		clr r27
-000111 95c3                      		inc r28
-000112 6290                      		sbr r25, 32
-000113 6490                      		sbr r25, 64
-000114 30ca                      		cpi r28, 10
-000115 f429                      		brne Disp_Select
-000116 27cc                      		clr r28
-000117 95d3                      		inc r29
-000118 6890                      		sbr r25, 128
-000119 940c 011b                 		jmp Disp_Select
+00011b 95a3                      		inc r26
+00011c 30a1                      		cpi r26, 1
+00011d f461                      		brne Disp_Select
+00011e e0a1                      		ldi r26, 0x01
+00011f 27bb                      		clr r27
+000120 95c3                      		inc r28
+000121 6290                      		sbr r25, 32
+000122 6490                      		sbr r25, 64
+000123 30ca                      		cpi r28, 10
+000124 f429                      		brne Disp_Select
+000125 27cc                      		clr r28
+000126 95d3                      		inc r29
+000127 6890                      		sbr r25, 128
+000128 940c 012a                 		jmp Disp_Select
                                  
                                  	
                                  	
                                  
                                  Disp_Select:
-00011b e011                      	ldi r17, 0x01
-00011c 16e1                      	cp r14, r17
-00011d f049                      	breq DM_1
-00011e e012                      	ldi r17, 0x02
-00011f 16e1                      	cp r14, r17
-000120 f0a9                      	breq DM_2
-000121 e014                      	ldi r17, 0x04
-000122 16e1                      	cp r14, r17
-000123 f109                      	breq DM_3
-000124 e018                      	ldi r17, 0x08
-000125 16e1                      	cp r14, r17
-000126 f0f9                      	breq DM_4
+00012a e011                      	ldi r17, 0x01
+00012b 16e1                      	cp r14, r17
+00012c f029                      	breq DM_1
+00012d e012                      	ldi r17, 0x02
+00012e 16e1                      	cp r14, r17
+00012f f089                      	breq DM_2
+000130 940c 0150                 	jmp options
+                                 	
                                  	DM_1:
-000127 9488                      	clc
-000128 1f00                      	rol r16 ;Cambio de selector
-000129 3100                      	cpi r16, 0x10
-00012a f409                      	brne fini1
-00012b e001                      	ldi r16, 0x01
+000132 9488                      	clc
+000133 1f00                      	rol r16 ;Cambio de selector
+000134 3100                      	cpi r16, 0x10
+000135 f409                      	brne fini1
+000136 e001                      	ldi r16, 0x01
                                  	fini1:
-00012c fd00                      	sbrc r16, 0
-00012d b82b                      	out portd, r2
-00012e fd01                      	sbrc r16, 1
-00012f b83b                      	out portd, r3
-000130 fd02                      	sbrc r16, 2
-000131 b84b                      	out portd, r4
-000132 fd03                      	sbrc r16, 3
-000133 b85b                      	out portd, r5
-000134 b908                      	out portc, r16
-000135 9518                      	reti
+000137 fd00                      	sbrc r16, 0
+000138 b82b                      	out portd, r2
+000139 fd01                      	sbrc r16, 1
+00013a b83b                      	out portd, r3
+00013b fd02                      	sbrc r16, 2
+00013c b84b                      	out portd, r4
+00013d fd03                      	sbrc r16, 3
+00013e b85b                      	out portd, r5
+00013f b908                      	out portc, r16
+000140 9518                      	reti
                                  
                                  	DM_2:
-000136 9488                      	clc
-000137 1f00                      	rol r16 ;Cambio de selector
-000138 3100                      	cpi r16, 0x10
-000139 f409                      	brne fini2
-00013a e001                      	ldi r16, 0x01
+000141 9488                      	clc
+000142 1f00                      	rol r16 ;Cambio de selector
+000143 3100                      	cpi r16, 0x10
+000144 f409                      	brne fini2
+000145 e001                      	ldi r16, 0x01
                                  	fini2:
-00013b fd00                      	sbrc r16, 0
-00013c b89b                      	out portd, r9
-00013d fd01                      	sbrc r16, 1
-00013e b8ab                      	out portd, r10
-00013f fd02                      	sbrc r16, 2
-000140 b8bb                      	out portd, r11
-000141 fd03                      	sbrc r16, 3
-000142 b8cb                      	out portd, r12
-000143 b908                      	out portc, r16
-000144 9518                      	reti
+000146 fd00                      	sbrc r16, 0
+000147 b89b                      	out portd, r9
+000148 fd01                      	sbrc r16, 1
+000149 b8ab                      	out portd, r10
+00014a fd02                      	sbrc r16, 2
+00014b b8bb                      	out portd, r11
+00014c fd03                      	sbrc r16, 3
+00014d b8cb                      	out portd, r12
+00014e b908                      	out portc, r16
+00014f 9518                      	reti
+                                 
+                                 	options:
+000150 e014                      	ldi r17, 0x04
+000151 16e1                      	cp r14, r17
+000152 f019                      	breq DM_3
+000153 e018                      	ldi r17, 0x08
+000154 16e1                      	cp r14, r17
+000155 f139                      	breq DM_4
                                  
                                  	DM_3:
-000145 9518                      	reti
+000156 932f                      	push r18
+000157 9120 0101                 	lds r18, MedioS
+000159 ff20                      	sbrs r18, 0
+00015a 940c 016c                 	jmp cancel1
+00015c 9488                      	clc
+00015d 1f00                      	rol r16 ;Cambio de selector
+00015e 3100                      	cpi r16, 0x10
+00015f f409                      	brne fini3
+000160 e001                      	ldi r16, 0x01
+                                 	fini3:
+000161 fd00                      	sbrc r16, 0
+000162 b82b                      	out portd, r2
+000163 fd01                      	sbrc r16, 1
+000164 b83b                      	out portd, r3
+000165 fd02                      	sbrc r16, 2
+000166 b84b                      	out portd, r4
+000167 fd03                      	sbrc r16, 3
+000168 b85b                      	out portd, r5
+000169 b908                      	out portc, r16
+00016a 912f                      	pop r18
+00016b 9518                      	reti
+                                 	cancel1:
+00016c e020                      	ldi r18, 0x00
+00016d 9488                      	clc
+00016e 1f00                      	rol r16 ;Cambio de selector
+00016f 3100                      	cpi r16, 0x10
+000170 f409                      	brne fini4
+000171 e001                      	ldi r16, 0x01
+                                 	fini4:
+000172 fd00                      	sbrc r16, 0
+000173 b92b                      	out portd, r18
+000174 fd01                      	sbrc r16, 1
+000175 b92b                      	out portd, r18
+000176 fd02                      	sbrc r16, 2
+000177 b92b                      	out portd, r18
+000178 fd03                      	sbrc r16, 3
+000179 b92b                      	out portd, r18
+00017a b908                      	out portc, r16
+00017b 912f                      	pop r18
+00017c 9518                      	reti
+                                 
                                  
                                  	DM_4:
-000146 9518                      	reti
+00017d 9518                      	reti
                                  
                                  
                                  DISP_LGC:
                                  
                                  
                                  	M_1:
-000147 931f                      		push r17
-000148 ff90                      		sbrs r25, 0
-000149 940c 0150                 		jmp dec_min
-00014b 2e75                      		mov r7, r21
-00014c 940e 01b3                 		call table_loop
-00014e 2e21                      		mov r2, r17
-00014f 7f9e                      		cbr r25, 1
+00017e 931f                      		push r17
+00017f ff90                      		sbrs r25, 0
+000180 940c 0187                 		jmp dec_min
+000182 2e75                      		mov r7, r21
+000183 940e 026f                 		call table_loop
+000185 2e21                      		mov r2, r17
+000186 7f9e                      		cbr r25, 1
                                  		dec_min:
-000150 ff91                      		sbrs r25, 1
-000151 940c 0158                 		jmp hora
-000153 2e76                      		mov r7, r22
-000154 940e 01b3                 		call table_loop
-000156 2e31                      		mov r3, r17
-000157 7f9d                      		cbr r25, 2
+000187 ff91                      		sbrs r25, 1
+000188 940c 018f                 		jmp hora
+00018a 2e76                      		mov r7, r22
+00018b 940e 026f                 		call table_loop
+00018d 2e31                      		mov r3, r17
+00018e 7f9d                      		cbr r25, 2
                                  		hora:
-000158 ff92                      		sbrs r25, 2
-000159 940c 0160                 		jmp dec_hora
-00015b 2e77                      		mov r7, r23
-00015c 940e 01b3                 		call table_loop
-00015e 2e41                      		mov r4, r17
-00015f 7f9b                      		cbr r25, 4
+00018f ff92                      		sbrs r25, 2
+000190 940c 0197                 		jmp dec_hora
+000192 2e77                      		mov r7, r23
+000193 940e 026f                 		call table_loop
+000195 2e41                      		mov r4, r17
+000196 7f9b                      		cbr r25, 4
                                  		dec_hora:
-000160 ff93                      		sbrs r25, 3
-000161 940c 0168                 		jmp dia
-000163 2e78                      		mov r7, r24
-000164 940e 01b3                 		call table_loop
-000166 2e51                      		mov r5, r17
-000167 7f97                      		cbr r25, 8
+000197 ff93                      		sbrs r25, 3
+000198 940c 019f                 		jmp dia
+00019a 2e78                      		mov r7, r24
+00019b 940e 026f                 		call table_loop
+00019d 2e51                      		mov r5, r17
+00019e 7f97                      		cbr r25, 8
                                  
                                  		dia:
-000168 ff94                      		sbrs r25, 4
-000169 940c 0170                 		jmp dec_dia
-00016b 2e7a                      		mov r7, r26
-00016c 940e 01b3                 		call table_loop
-00016e 2e91                      		mov r9, r17
-00016f 7e9f                      		cbr r25, 16
+00019f ff94                      		sbrs r25, 4
+0001a0 940c 01a7                 		jmp dec_dia
+0001a2 2e7a                      		mov r7, r26
+0001a3 940e 026f                 		call table_loop
+0001a5 2e91                      		mov r9, r17
+0001a6 7e9f                      		cbr r25, 16
                                  
                                  		dec_dia:
-000170 ff95                      		sbrs r25, 5
-000171 940c 0178                 		jmp mes
-000173 2e7b                      		mov r7, r27
-000174 940e 01b3                 		call table_loop
-000176 2ea1                      		mov r10, r17
-000177 7d9f                      		cbr r25, 32
+0001a7 ff95                      		sbrs r25, 5
+0001a8 940c 01af                 		jmp mes
+0001aa 2e7b                      		mov r7, r27
+0001ab 940e 026f                 		call table_loop
+0001ad 2ea1                      		mov r10, r17
+0001ae 7d9f                      		cbr r25, 32
                                  
                                  		mes:
-000178 ff96                      		sbrs r25, 6
-000179 940c 0180                 		jmp dec_mes
-00017b 2e7c                      		mov r7, r28
-00017c 940e 01b3                 		call table_loop
-00017e 2eb1                      		mov r11, r17
-00017f 7b9f                      		cbr r25, 64
+0001af ff96                      		sbrs r25, 6
+0001b0 940c 01b7                 		jmp dec_mes
+0001b2 2e7c                      		mov r7, r28
+0001b3 940e 026f                 		call table_loop
+0001b5 2eb1                      		mov r11, r17
+0001b6 7b9f                      		cbr r25, 64
                                  
                                  		dec_mes:
-000180 ff97                      		sbrs r25, 7
-000181 940c 018a                 		jmp disp_fini
-000183 2e7d                      		mov r7, r29
-000184 940e 01b3                 		call table_loop
-000186 2ec1                      		mov r12, r17
-000187 7b9f                      		cbr r25, 64
+0001b7 ff97                      		sbrs r25, 7
+0001b8 940c 01c1                 		jmp disp_fini
+0001ba 2e7d                      		mov r7, r29
+0001bb 940e 026f                 		call table_loop
+0001bd 2ec1                      		mov r12, r17
+0001be 7b9f                      		cbr r25, 64
                                  
-000188 940c 018a                 		jmp disp_fini
+0001bf 940c 01c1                 		jmp disp_fini
                                  
                                  	disp_fini:
-00018a 911f                      	pop r17
-00018b 9518                      	reti
+0001c1 911f                      	pop r17
+0001c2 9518                      	reti
                                  	
                                  	
                                  
                                  in_tim0:
-00018c e003                      	LDI R16, (1<<CS01) | (1<<CS00)
-00018d bd05                      	OUT TCCR0B, R16 // Setear prescaler del TIMER 0 a 64
-00018e eb02                      	LDI R16, 178
-00018f bd06                      	OUT TCNT0, R16 // Cargar valor inicial en TCNT0
-000190 9508                      	RET
+0001c3 e003                      	LDI R16, (1<<CS01) | (1<<CS00)
+0001c4 bd05                      	OUT TCCR0B, R16 // Setear prescaler del TIMER 0 a 64
+0001c5 eb02                      	LDI R16, 178
+0001c6 bd06                      	OUT TCNT0, R16 // Cargar valor inicial en TCNT0
+0001c7 9508                      	RET
                                  
                                  in_tim2:
-000191 e004                      	ldi r16, 0x04
-000192 9300 00b1                 	sts TCCR2B, r16
-000194 e604                      	ldi r16, 100
-000195 9300 00b2                 	sts TCNT2, r16
-000197 9508                      	ret
+0001c8 e004                      	ldi r16, 0x04
+0001c9 9300 00b1                 	sts TCCR2B, r16
+0001cb e604                      	ldi r16, 100
+0001cc 9300 00b2                 	sts TCNT2, r16
+0001ce 9508                      	ret
                                  PIN_CHANGE:
-000198 930f                      	push r16
+0001cf 930f                      	push r16
+0001d0 931f                      	push r17
                                  
-000199 b103                      	in r16, pinb
-00019a ff00                      	sbrs r16, 0
-00019b c00a                      	rjmp B_1
-00019c ff01                      	sbrs r16, 1
-00019d c009                      	rjmp B_2
-00019e ff02                      	sbrs r16, 2
-00019f c008                      	rjmp B_3
-0001a0 ff03                      	sbrs r16, 3
-0001a1 c007                      	rjmp B_4
-0001a2 ff04                      	sbrs r16, 4
-0001a3 c006                      	rjmp M_CHANGE
+0001d1 b103                      	in r16, pinb
+0001d2 ff00                      	sbrs r16, 0
+0001d3 c00b                      	rjmp B_1
+0001d4 ff01                      	sbrs r16, 1
+0001d5 c00a                      	rjmp B_Up
+0001d6 ff02                      	sbrs r16, 2
+0001d7 c043                      	rjmp B_Down
+0001d8 ff03                      	sbrs r16, 3
+0001d9 c074                      	rjmp B_DigChange
+0001da ff04                      	sbrs r16, 4
+0001db c08a                      	rjmp M_CHANGE
                                  
                                  	salir:
-0001a4 910f                      	pop r16
-0001a5 9518                      	reti
+0001dc 911f                      	pop r17
+0001dd 910f                      	pop r16
+0001de 9518                      	reti
                                  
                                  
                                  	B_1:
-0001a6 cffd                      	rjmp salir
+0001df cffc                      	rjmp salir
                                  
-                                 	B_2:
-0001a7 cffc                      	rjmp salir
+                                 	B_Up:
+0001e0 fce0                      		sbrc r14, 0
+0001e1 940c 01dc                 		jmp salir
+0001e3 fce1                      		sbrc r14, 1
+0001e4 940c 01dc                 		jmp salir
+0001e6 fce2                      		sbrc r14, 2
+0001e7 940c 01ec                 		jmp HM_Up
+0001e9 fce3                      		sbrc r14, 3
+0001ea 940c 0217                 		jmp F_Up
                                  
-                                 	B_3:
-0001a8 cffb                      	rjmp salir
+                                 		HM_Up:
+0001ec 932f                      		push r18
+0001ed 9120 0100                 		lds r18, DigSelect
+0001ef fd20                      		sbrc r18, 0
+0001f0 940c 01f4                 		jmp M_Up
+0001f2 940c 0201                 		jmp H_Up
                                  
-                                 	B_4:
-0001a9 cffa                      	rjmp salir
+                                 			M_Up:
+0001f4 912f                      			pop r18
+0001f5 6091                      			sbr r25, 1
+0001f6 9553                      			inc r21
+0001f7 305a                      			cpi r21, 10
+0001f8 f719                      			brne salir
+0001f9 6092                      			sbr r25, 2
+0001fa 2755                      			clr r21
+0001fb 9563                      			inc r22
+0001fc 3066                      			cpi r22, 6
+0001fd f6f1                      			brne salir
+0001fe 2766                      			clr r22
+0001ff 940c 01dc                 			jmp salir
+                                 
+                                 			H_Up:
+000201 912f                      			pop r18
+000202 6094                      			sbr r25, 4
+000203 9573                      			inc r23
+000204 3082                      			cpi r24, 2
+000205 f051                      			breq H_Up_High
+000206 307a                      			cpi r23, 10
+000207 f6a1                      			brne salir
+000208 6098                      			sbr r25, 8
+000209 2777                      			clr r23
+00020a 9583                      			inc r24
+00020b 3086                      			cpi r24, 6
+00020c f679                      			brne salir
+00020d 2788                      			clr r24
+00020e 940c 01dc                 			jmp salir
+                                 			H_Up_High:
+000210 3074                      			cpi r23, 4
+000211 f651                      			brne salir
+000212 6098                      			sbr r25, 8
+000213 2777                      			clr r23
+000214 2788                      			clr r24
+000215 940c 01dc                 			jmp salir
+                                 
+                                 		F_Up:
+000217 940c 01dc                 		jmp salir
+                                 
+                                 				escapeB:
+000219 940c 01dc                 				jmp salir
+                                 	B_Down:
+00021b fce0                      	sbrc r14, 0
+00021c 940c 01dc                 		jmp salir
+00021e fce1                      		sbrc r14, 1
+00021f 940c 01dc                 		jmp salir
+000221 fce2                      		sbrc r14, 2
+000222 940c 0227                 		jmp HM_Down
+000224 fce3                      		sbrc r14, 3
+000225 940c 024c                 		jmp F_Down
+                                 
+                                 		HM_Down:
+000227 932f                      		push r18
+000228 9120 0100                 		lds r18, DigSelect
+00022a fd20                      		sbrc r18, 0
+00022b 940c 022f                 		jmp M_Down
+00022d 940c 023c                 		jmp H_Down
+                                 
+                                 			M_Down:
+00022f 912f                      			pop r18
+000230 6091                      			sbr r25, 1
+000231 955a                      			dec r21
+000232 3f5f                      			cpi r21, 0xff
+000233 f729                      			brne escapeB
+000234 6092                      			sbr r25, 2
+000235 e059                      			ldi r21, 0x09
+000236 956a                      			dec r22
+000237 3f6f                      			cpi r22, 0xff
+000238 f701                      			brne escapeB
+000239 e065                      			ldi r22, 0x05
+00023a 940c 01dc                 			jmp salir
+                                 
+                                 			H_Down:
+00023c 912f                      			pop r18
+00023d 6094                      			sbr r25, 4
+00023e 957a                      			dec r23
+00023f 3f7f                      			cpi r23, 0xff
+000240 f6c1                      			brne escapeB
+000241 6098                      			sbr r25, 8
+000242 958a                      			dec r24
+000243 3f8f                      			cpi r24, 0xff
+000244 f019                      			breq H_Down_High
+000245 e079                      			ldi r23, 0x09
+000246 940c 01dc                 			jmp salir
+                                 			H_Down_High:
+000248 e082                      			ldi r24, 0x02
+000249 e073                      			ldi r23, 0x03
+00024a 940c 01dc                 			jmp salir
+                                 			
+                                 
+                                 		F_Down:
+00024c 940c 01dc                 		jmp salir
+                                 
+                                 	B_DigChange:
+00024e fce0                      		sbrc r14, 0
+00024f 940c 01dc                 		jmp salir
+000251 fce1                      		sbrc r14, 1
+000252 940c 01dc                 		jmp salir
+000254 fce2                      		sbrc r14, 2
+000255 940c 025a                 		jmp DigChange
+000257 fce3                      		sbrc r14, 3
+000258 940c 025a                 		jmp DigChange
+                                 
+                                 		DigChange:
+00025a 932f                      		push r18
+00025b 9120 0100                 		lds r18, DigSelect
+00025d 0f22                      		lsl r18
+00025e fd23                      		sbrc r18, 3
+00025f e021                      		ldi r18, 0x01
+000260 9320 0100                 		sts DigSelect, r18
+000262 912f                      		pop r18
+000263 940c 01dc                 		jmp salir
+                                 
+                                 
+                                 
+000265 cf76                      	rjmp salir
                                  
                                      M_CHANGE:
-0001aa 0cee                      	lsl r14
-0001ab fce4                      	sbrc r14, 4
-0001ac 940c 01b0                 	jmp modreset
-0001ae 940c 01a4                 	jmp salir
-                                 	modreset:
-0001b0 e011                      	ldi r17, 0x01
-0001b1 2ee1                      	mov r14, r17
-0001b2 cff1                      	rjmp salir
+000266 0cee                      		lsl r14
+000267 fce4                      		sbrc r14, 4
+000268 940c 026c                 		jmp modreset
+00026a 940c 01dc                 		jmp salir
+                                 		modreset:
+00026c e011                      		ldi r17, 0x01
+00026d 2ee1                      		mov r14, r17
+00026e cf6d                      		rjmp salir
                                  	
                                  
                                  table_loop:
-0001b3 e4ee                      	LDI ZL, LOW(tab7seg<<1)
-0001b4 e0f0                      	LDI ZH, HIGH(tab7seg<<1)
+00026f e4ee                      	LDI ZL, LOW(tab7seg<<1)
+000270 e0f0                      	LDI ZH, HIGH(tab7seg<<1)
                                  table_loop1:
-0001b5 1478                      	cp r7, r8
-0001b6 f021                      	breq tab_fini
-0001b7 9483                      	inc r8
-0001b8 9631                      	adiw Z, 1
-0001b9 940c 01b5                 	jmp table_loop1
+000271 1478                      	cp r7, r8
+000272 f021                      	breq tab_fini
+000273 9483                      	inc r8
+000274 9631                      	adiw Z, 1
+000275 940c 0271                 	jmp table_loop1
                                  	tab_fini:
-0001bb 9114                      	lpm r17, z
-0001bc 2488                      	clr r8
-0001bd 9508                      	ret
+000277 9114                      	lpm r17, z
+000278 2488                      	clr r8
+000279 9508                      	ret
                                  
 
 
@@ -1563,39 +1743,39 @@ counted separately from r26..r31 here.
 .dseg memory usage only counts static data declared with .byte
 
 "ATmega328P" register use summary:
-x  :   0 y  :   0 z  :   3 r0 :   0 r1 :   0 r2 :   3 r3 :   3 r4 :   3 
-r5 :   3 r6 :   1 r7 :  10 r8 :   4 r9 :   3 r10:   3 r11:   3 r12:   3 
-r13:   0 r14:   8 r15:   0 r16:  60 r17:  28 r18:   3 r19:   4 r20:   4 
-r21:   5 r22:   6 r23:   8 r24:   5 r25:  44 r26:  31 r27:  21 r28:  15 
+x  :   0 y  :   0 z  :   3 r0 :   0 r1 :   0 r2 :   4 r3 :   4 r4 :   4 
+r5 :   4 r6 :   1 r7 :  10 r8 :   4 r9 :   3 r10:   3 r11:   3 r12:   3 
+r13:   0 r14:  20 r15:  11 r16:  76 r17:  30 r18:  31 r19:   5 r20:   4 
+r21:  11 r22:  12 r23:  17 r24:  13 r25:  53 r26:  31 r27:  21 r28:  15 
 r29:   6 r30:   2 r31:   2 
-Registers used: 29 out of 35 (82.9%)
+Registers used: 30 out of 35 (85.7%)
 
 "ATmega328P" instruction use summary:
 .lds  :   0 .sts  :   0 adc   :   0 add   :   0 adiw  :   1 and   :   0 
 andi  :   0 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
-brcc  :   0 brcs  :   0 break :   0 breq  :  12 brge  :   0 brhc  :   0 
+brcc  :   0 brcs  :   0 break :   0 breq  :  14 brge  :   0 brhc  :   0 
 brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 brlt  :   0 brmi  :   0 
-brne  :  25 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
+brne  :  36 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
 brvs  :   0 bset  :   0 bst   :   0 call  :  10 cbi   :   3 cbr   :   8 
-clc   :   2 clh   :   0 cli   :   1 cln   :   0 clr   :  21 cls   :   0 
+clc   :   4 clh   :   0 cli   :   1 cln   :   0 clr   :  30 cls   :   0 
 clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   5 cpc   :   0 
-cpi   :  32 cpse  :   0 dec   :   0 eor   :   0 fmul  :   0 fmuls :   0 
-fmulsu:   0 icall :   0 ijmp  :   0 in    :   1 inc   :  28 jmp   :  26 
-ld    :   0 ldd   :   0 ldi   :  47 lds   :   0 lpm   :   4 lsl   :   1 
-lsr   :   0 mov   :  29 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
-neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :  18 pop   :   2 
-push  :   2 rcall :   0 ret   :   3 reti  :   6 rjmp  :  15 rol   :   2 
+cpi   :  45 cpse  :   0 dec   :   4 eor   :   0 fmul  :   0 fmuls :   0 
+fmulsu:   0 icall :   0 ijmp  :   0 in    :   1 inc   :  33 jmp   :  53 
+ld    :   0 ldd   :   0 ldi   :  55 lds   :   4 lpm   :   4 lsl   :   2 
+lsr   :   0 mov   :  30 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
+neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :  28 pop   :  12 
+push  :   9 rcall :   0 ret   :   3 reti  :   7 rjmp  :  13 rol   :   4 
 ror   :   0 sbc   :   0 sbci  :   0 sbi   :   5 sbic  :   0 sbis  :   0 
-sbiw  :   0 sbr   :  25 sbrc  :  13 sbrs  :  13 sec   :   0 seh   :   0 
+sbiw  :   0 sbr   :  33 sbrc  :  36 sbrs  :  14 sec   :   0 seh   :   0 
 sei   :   1 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
-sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :   8 
+sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :  13 
 sub   :   0 subi  :   0 swap  :   0 tst   :   0 wdr   :   0 
-Instructions used: 31 out of 113 (27.4%)
+Instructions used: 33 out of 113 (29.2%)
 
 "ATmega328P" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x00037c    822     16    838   32768   2.6%
+[.cseg] 0x000000 0x0004f4   1198     16   1214   32768   3.7%
 [.dseg] 0x000100 0x000102      0      2      2    2048   0.1%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 

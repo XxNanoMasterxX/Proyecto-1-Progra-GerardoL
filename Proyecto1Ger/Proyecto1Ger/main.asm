@@ -9,8 +9,9 @@
 
 .dseg
 .org 0x0100
-MODO: .byte 1
-estado_anterior: .byte 1
+DigSelect: .byte 1
+MedioS: .byte 1
+
 
 .cseg
 .org 0x0000
@@ -38,7 +39,7 @@ SETUP_GEN:
 	ldi r16, (1 << CLKPCE)
 	sts CLKPR, r16 //Hora de prescaler hermano
 	ldi r16, 0b00000100
-	;sts CLKPR, r16 // Asi es viejo, prescaler F_cpu = 1MHz
+	sts CLKPR, r16 // Asi es viejo, prescaler F_cpu = 1MHz
 
 	call in_tim0
 	call in_tim2
@@ -49,7 +50,7 @@ SETUP_GEN:
 
 	ldi r16, 0x01
 	sts PCICR, R16
-	ldi r16, 0b00010001
+	ldi r16, 0b00011111
 	sts PCMSK0, r16
 
 	LDI ZL, LOW(tab7seg<<1)
@@ -81,16 +82,16 @@ SETUP_GEN:
 	ldi r16, 0x06
 	mov r9, r16
 	mov r11, r16
-	ldi r16, 0xff
-	sts estado_anterior, r16
 	ldi r16, 0x01
+	sts DigSelect, r16
 	ldi r18, 0x00
+	sts MedioS, r18
 	ldi r19, 0x00
 	ldi r20, 0x00
-	ldi r21, 0x00
-	ldi r22, 0x00
-	ldi r23, 0x00
-	ldi r24, 0x00
+	ldi r21, 0x00 ; Minuto
+	ldi r22, 0x00 ; Dec_Minuto
+	ldi r23, 0x00 ; Hora
+	ldi r24, 0x00 ; Dec_Hora
 	ldi r25, 0x00
 	ldi r26, 0x01 ; Dia
 	ldi r27, 0x00 ; Dec_Dia
@@ -99,6 +100,7 @@ SETUP_GEN:
 	mov r7, r25
 	mov r8, r25
 	mov r14, r16
+	mov r15, r25
 	sei
 
 loop:
@@ -108,14 +110,22 @@ SW_CNT:
 	ldi r18, 178
 	out TCNT0, r18
 	inc r19
+	cpi r19, 100
+	brne segundos
+	push r15
+	clr r15
+	inc r15
+	sts MedioS, r15
+	clr r15
+	pop r15
+	segundos:
 	cpi r19, 200 ; Segundo
 	brne escape
-
-	
-
+	push r15
+	clr r15
+	sts MedioS, r15
+	pop r15
 	clr r19
-	jmp temporal
-
 	inc r20
 	cpi r20, 60 ; Minutos
 	brne escape
@@ -155,8 +165,6 @@ SW_CNT:
 	sbr r25, 16
 	clr r23
 	clr r24
-				temporal:
-				sbr r25, 16
 	sbrc r28, 3 ; Check de mes
 	rjmp Mes_Alto
 	sbrc r29, 0
@@ -316,12 +324,8 @@ Disp_Select:
 	ldi r17, 0x02
 	cp r14, r17
 	breq DM_2
-	ldi r17, 0x04
-	cp r14, r17
-	breq DM_3
-	ldi r17, 0x08
-	cp r14, r17
-	breq DM_4
+	jmp options
+	
 	DM_1:
 	clc
 	rol r16 ;Cambio de selector
@@ -358,8 +362,56 @@ Disp_Select:
 	out portc, r16
 	reti
 
+	options:
+	ldi r17, 0x04
+	cp r14, r17
+	breq DM_3
+	ldi r17, 0x08
+	cp r14, r17
+	breq DM_4
+
 	DM_3:
+	push r18
+	lds r18, MedioS
+	sbrs r18, 0
+	jmp cancel1
+	clc
+	rol r16 ;Cambio de selector
+	cpi r16, 0x10
+	brne fini3
+	ldi r16, 0x01
+	fini3:
+	sbrc r16, 0
+	out portd, r2
+	sbrc r16, 1
+	out portd, r3
+	sbrc r16, 2
+	out portd, r4
+	sbrc r16, 3
+	out portd, r5
+	out portc, r16
+	pop r18
 	reti
+	cancel1:
+	ldi r18, 0x00
+	clc
+	rol r16 ;Cambio de selector
+	cpi r16, 0x10
+	brne fini4
+	ldi r16, 0x01
+	fini4:
+	sbrc r16, 0
+	out portd, r18
+	sbrc r16, 1
+	out portd, r18
+	sbrc r16, 2
+	out portd, r18
+	sbrc r16, 3
+	out portd, r18
+	out portc, r16
+	pop r18
+	reti
+
 
 	DM_4:
 	reti
@@ -453,20 +505,22 @@ in_tim2:
 	ret
 PIN_CHANGE:
 	push r16
+	push r17
 
 	in r16, pinb
 	sbrs r16, 0
 	rjmp B_1
 	sbrs r16, 1
-	rjmp B_2
+	rjmp B_Up
 	sbrs r16, 2
-	rjmp B_3
+	rjmp B_Down
 	sbrs r16, 3
-	rjmp B_4
+	rjmp B_DigChange
 	sbrs r16, 4
 	rjmp M_CHANGE
 
 	salir:
+	pop r17
 	pop r16
 	reti
 
@@ -474,24 +528,150 @@ PIN_CHANGE:
 	B_1:
 	rjmp salir
 
-	B_2:
-	rjmp salir
+	B_Up:
+		sbrc r14, 0
+		jmp salir
+		sbrc r14, 1
+		jmp salir
+		sbrc r14, 2
+		jmp HM_Up
+		sbrc r14, 3
+		jmp F_Up
 
-	B_3:
-	rjmp salir
+		HM_Up:
+		push r18
+		lds r18, DigSelect
+		sbrc r18, 0
+		jmp M_Up
+		jmp H_Up
 
-	B_4:
+			M_Up:
+			pop r18
+			sbr r25, 1
+			inc r21
+			cpi r21, 10
+			brne salir
+			sbr r25, 2
+			clr r21
+			inc r22
+			cpi r22, 6
+			brne salir
+			clr r22
+			jmp salir
+
+			H_Up:
+			pop r18
+			sbr r25, 4
+			inc r23
+			cpi r24, 2
+			breq H_Up_High
+			cpi r23, 10
+			brne salir
+			sbr r25, 8
+			clr r23
+			inc r24
+			cpi r24, 6
+			brne salir
+			clr r24
+			jmp salir
+			H_Up_High:
+			cpi r23, 4
+			brne salir
+			sbr r25, 8
+			clr r23
+			clr r24
+			jmp salir
+
+		F_Up:
+		jmp salir
+
+				escapeB:
+				jmp salir
+	B_Down:
+	sbrc r14, 0
+		jmp salir
+		sbrc r14, 1
+		jmp salir
+		sbrc r14, 2
+		jmp HM_Down
+		sbrc r14, 3
+		jmp F_Down
+
+		HM_Down:
+		push r18
+		lds r18, DigSelect
+		sbrc r18, 0
+		jmp M_Down
+		jmp H_Down
+
+			M_Down:
+			pop r18
+			sbr r25, 1
+			dec r21
+			cpi r21, 0xff
+			brne escapeB
+			sbr r25, 2
+			ldi r21, 0x09
+			dec r22
+			cpi r22, 0xff
+			brne escapeB
+			ldi r22, 0x05
+			jmp salir
+
+			H_Down:
+			pop r18
+			sbr r25, 4
+			dec r23
+			cpi r23, 0xff
+			brne escapeB
+			sbr r25, 8
+			dec r24
+			cpi r24, 0xff
+			breq H_Down_High
+			ldi r23, 0x09
+			jmp salir
+			H_Down_High:
+			ldi r24, 0x02
+			ldi r23, 0x03
+			jmp salir
+			
+
+		F_Down:
+		jmp salir
+
+	B_DigChange:
+		sbrc r14, 0
+		jmp salir
+		sbrc r14, 1
+		jmp salir
+		sbrc r14, 2
+		jmp DigChange
+		sbrc r14, 3
+		jmp DigChange
+
+		DigChange:
+		push r18
+		lds r18, DigSelect
+		lsl r18
+		sbrc r18, 3
+		ldi r18, 0x01
+		sts DigSelect, r18
+		pop r18
+		jmp salir
+
+
+
 	rjmp salir
 
     M_CHANGE:
-	lsl r14
-	sbrc r14, 4
-	jmp modreset
-	jmp salir
-	modreset:
-	ldi r17, 0x01
-	mov r14, r17
-	rjmp salir
+		lsl r14
+		sbrc r14, 4
+		jmp modreset
+		jmp salir
+		modreset:
+		ldi r17, 0x01
+		mov r14, r17
+		rjmp salir
 	
 
 table_loop:
