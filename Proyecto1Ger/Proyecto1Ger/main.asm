@@ -11,19 +11,19 @@
 .org 0x0100
 DigSelect: .byte 1
 MedioS: .byte 1
-AM: .byte 1
+AM: .byte 1 ; Valores a comparar para la alarma
 ADM: .byte 1
 AH: .byte 1
 ADH: .byte 1
-D_AM: .byte 1
+D_AM: .byte 1 ;Display de la alarma
 D_ADM: .byte 1
 D_AH: .byte 1
 D_ADH: .byte 1
-PM: .byte 1
+PM: .byte 1 ; Valores pasados del reloj
 PDM: .byte 1
 PH: .byte 1
 PDH: .byte 1
-FA: .byte 1
+FA: .byte 1 ; Banderas para la alarma
 
 
 
@@ -50,12 +50,13 @@ SETUP_GEN:
 	tab7seg: .DB 0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6D, 0x7D, 0x07, 0x7f, 0x67, 0x77, 0x7c, 0x39, 0x5e, 0x79, 0x71
 
 
-; Setup del clock0
+; Setup del clock
 	ldi r16, (1 << CLKPCE)
 	sts CLKPR, r16 //Hora de prescaler hermano
 	ldi r16, 0b00000100
 	sts CLKPR, r16 // Asi es viejo, prescaler F_cpu = 1MHz
 
+	; Setup del timer0 y 2
 	call in_tim0
 	call in_tim2
 
@@ -63,11 +64,13 @@ SETUP_GEN:
 	sts TIMSK0, r16
 	sts TIMSK2, r16
 
+	; Pin change setup
 	ldi r16, 0x01
 	sts PCICR, R16
 	ldi r16, 0b00011111
 	sts PCMSK0, r16
 
+	; Valores iniciales para display
 	LDI ZL, LOW(tab7seg<<1)
 	LDI ZH, HIGH(tab7seg<<1)
 	LPM R17, Z // Se carga el valor inicial de z hacia el port, este siendo 0.
@@ -78,6 +81,7 @@ SETUP_GEN:
 	MOV R10, R17
 	MOV R12, R17
 
+	; Pines setup
 	ldi r16, 0x00
 	out ddrb, r16
 	sbi DDRC, 0
@@ -345,7 +349,7 @@ SW_CNT:
 Disp_Select:
 	lds r18, FA
 	sbrc r18, 1
-	jmp alarma_c
+	jmp alarma_c ; Si la alarma ha sido activada, salta a comparar
 	DMs:
 	sbrc r14, 0
 	jmp DM_1
@@ -376,9 +380,9 @@ Disp_Select:
 	brne Alarma_no
 	cp r24, r19
 	brne Alarma_no
-	cpi r20, 0x00
+	cpi r20, 0x00 ; Una vez comprueba que la hora es la misma, solo se activa cuando no han pasado segundos
 	brne Alarma_no
-	sbi portB, 5
+	sbi portB, 5 ; Activa alarma
 	pop r19
 	pop r18
 	pop r17
@@ -395,7 +399,7 @@ Disp_Select:
 
 	
 
-	DM_1:
+	DM_1: ; MODO Mostrar dia
 	clc
 	rol r16 ;Cambio de selector
 	cpi r16, 0x10
@@ -413,7 +417,7 @@ Disp_Select:
 	out portc, r16
 	reti
 
-	DM_2:
+	DM_2: ; MODO Mostrar Fecha
 	clc
 	rol r16 ;Cambio de selector
 	cpi r16, 0x10
@@ -432,7 +436,7 @@ Disp_Select:
 	reti
 
 
-	DM_3:
+	DM_3: ; MODO Cambio de hora
 	push r18
 	lds r18, MedioS
 	sbrs r18, 0
@@ -461,7 +465,7 @@ Disp_Select:
 	reti
 
 
-	DM_4:
+	DM_4: ; MODO Cambiar fecha
 	push r18
 	lds r18, MedioS
 	sbrs r18, 0
@@ -493,7 +497,7 @@ Disp_Select:
 	pop r18
 	jmp DM_3
 
-	DM_5:
+	DM_5: ; MODO Alarma
 	push r18
 	lds r18, FA
 	sbrs r18, 1
@@ -546,7 +550,7 @@ Disp_Select:
 
 DISP_LGC:
 
-	M_1:
+	M_1: ; Actualiza los valores del display de minutos, horas, dia o mes. Solo actualiza si hay cambio.
 		push r17
 		sbrs r25, 0
 		jmp dec_min
@@ -662,11 +666,11 @@ PIN_CHANGE:
 		sbrc r14, 4
 		jmp A_Set
 
-		A_Off:
+		A_Off: ; En modo 1, apaga la alarma si esta activa
 		cbi portb, 5
 		jmp salir
 
-		A_Set:
+		A_Set: ; Si esta en modo alarma, activa o reinica la alarma. Solo la activa si hubo cambios a la hora
 		push r18
 		lds r18, FA
 		sbrc r18, 1
@@ -726,7 +730,7 @@ PIN_CHANGE:
 		jmp salir
 
 
-	B_Up:
+	B_Up: ; Analiza en que modo esta y sube el digito correspondiente.
 		sbrc r14, 0
 		jmp salir
 		sbrc r14, 1
@@ -738,7 +742,7 @@ PIN_CHANGE:
 		sbrc r14, 4
 		jmp A_Up
 
-		HM_Up:
+		HM_Up: ; Sube horas y minutos
 		push r18
 		lds r18, DigSelect
 		sbrc r18, 0
@@ -782,7 +786,7 @@ PIN_CHANGE:
 			clr r24
 			jmp salir
 
-		F_Up:
+		F_Up: ; Sube fecha
 		push r18
 		lds r18, DigSelect
 		sbrc r18, 0
@@ -903,6 +907,8 @@ PIN_CHANGE:
 			A_Up:
 			push r18
 			lds r18, FA
+			sbrc r18, 1
+			jmp A_Up_Cancel
 			sbrc r18, 0
 			jmp A_Up_C
 			sts PM, r21
@@ -918,6 +924,10 @@ PIN_CHANGE:
 			sbrc r18, 0
 			jmp AM_Up
 			jmp AH_Up
+
+			A_Up_Cancel:
+			pop r18
+			jmp salir
 
 				AM_Up:
 				pop r18
@@ -959,7 +969,7 @@ PIN_CHANGE:
 				clr r24
 				jmp salir
 				
-	B_Down:
+	B_Down: ; Analiza en cual modo esta y decrementa el digito correspondiente.
 	sbrc r14, 0
 		jmp salir
 		sbrc r14, 1
@@ -971,7 +981,7 @@ PIN_CHANGE:
 		sbrc r14, 4
 		jmp A_Down
 
-		HM_Down:
+		HM_Down: ; Decrementa hora y minutos
 		push r18
 		lds r18, DigSelect
 		sbrc r18, 0
@@ -1012,7 +1022,7 @@ PIN_CHANGE:
 					escapeC:
 					jmp salir
 
-		F_Down:
+		F_Down: ; Decrementa fecha
 		push r18
 		lds r18, DigSelect
 		sbrc r18, 0
@@ -1056,7 +1066,7 @@ PIN_CHANGE:
 			cpi r27, 0
 			breq D_Down_Low
 			cpi r26, 0xff
-			brne escapeE
+			brne escapeC
 			ldi r26, 9
 			dec r27
 			sbr r25, 32
@@ -1107,8 +1117,7 @@ PIN_CHANGE:
 			sbr r25, 32
 			ldi r27, 0x02
 			jmp salir
-					escapeE:
-					jmp salir
+					
 
 			D_Down_Low:
 			cpi r26, 0
@@ -1126,10 +1135,14 @@ PIN_CHANGE:
 			ldi r26, 0x01
 			ldi r27, 0x03
 			jmp salir
+					escapeE:
+					jmp salir
 
-			A_Down:
+			A_Down: ; Decrementa fecha
 			push r18
 			lds r18, FA
+			sbrc r18, 1
+			jmp A_Up_Cancel
 			sbrc r18, 0
 			jmp A_Down_C
 			sts PM, r21
@@ -1145,6 +1158,10 @@ PIN_CHANGE:
 			sbrc r18, 0
 			jmp AM_Down
 			jmp AH_Down
+
+			A_Down_Cancel:
+			pop r18
+			jmp salir
 
 				AM_Down:
 				pop r18
@@ -1178,7 +1195,7 @@ PIN_CHANGE:
 				jmp salir
 
 
-	B_DigChange:
+	B_DigChange: ; Cambia el digito que afecta arriba y abajo
 		sbrc r14, 0
 		jmp salir
 		sbrc r14, 1
@@ -1199,7 +1216,7 @@ PIN_CHANGE:
 		pop r18
 		jmp salir
 
-    M_CHANGE:
+    M_CHANGE: ; Cambia el modo
 		lsl r14
 		sbrc r14, 5
 		jmp modreset

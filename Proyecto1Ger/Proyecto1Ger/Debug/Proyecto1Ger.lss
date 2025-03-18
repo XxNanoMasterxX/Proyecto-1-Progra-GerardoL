@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm Tue Mar 18 08:27:24 2025
+AVRASM ver. 2.2.8  C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm Tue Mar 18 11:19:18 2025
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
 C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm(8): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\M328Pdef.inc'
@@ -1042,19 +1042,19 @@ C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm(8)
                                  .org 0x0100
 000100                           DigSelect: .byte 1
 000101                           MedioS: .byte 1
-000102                           AM: .byte 1
+000102                           AM: .byte 1 ; Valores a comparar para la alarma
 000103                           ADM: .byte 1
 000104                           AH: .byte 1
 000105                           ADH: .byte 1
-000106                           D_AM: .byte 1
+000106                           D_AM: .byte 1 ;Display de la alarma
 000107                           D_ADM: .byte 1
 000108                           D_AH: .byte 1
 000109                           D_ADH: .byte 1
-00010a                           PM: .byte 1
+00010a                           PM: .byte 1 ; Valores pasados del reloj
 00010b                           PDM: .byte 1
 00010c                           PH: .byte 1
 00010d                           PDH: .byte 1
-00010e                           FA: .byte 1
+00010e                           FA: .byte 1 ; Banderas para la alarma
                                  
                                  
                                  
@@ -1088,12 +1088,13 @@ C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm(8)
 00002e 7179                      	tab7seg: .DB 0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6D, 0x7D, 0x07, 0x7f, 0x67, 0x77, 0x7c, 0x39, 0x5e, 0x79, 0x71
                                  
                                  
-                                 ; Setup del clock0
+                                 ; Setup del clock
 00002f e800                      	ldi r16, (1 << CLKPCE)
 000030 9300 0061                 	sts CLKPR, r16 //Hora de prescaler hermano
 000032 e004                      	ldi r16, 0b00000100
 000033 9300 0061                 	sts CLKPR, r16 // Asi es viejo, prescaler F_cpu = 1MHz
                                  
+                                 	; Setup del timer0 y 2
 000035 940e 023f                 	call in_tim0
 000037 940e 0244                 	call in_tim2
                                  
@@ -1101,11 +1102,13 @@ C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm(8)
 00003a 9300 006e                 	sts TIMSK0, r16
 00003c 9300 0070                 	sts TIMSK2, r16
                                  
+                                 	; Pin change setup
 00003e e001                      	ldi r16, 0x01
 00003f 9300 0068                 	sts PCICR, R16
 000041 e10f                      	ldi r16, 0b00011111
 000042 9300 006b                 	sts PCMSK0, r16
                                  
+                                 	; Valores iniciales para display
 000044 e4ee                      	LDI ZL, LOW(tab7seg<<1)
 000045 e0f0                      	LDI ZH, HIGH(tab7seg<<1)
 000046 9114                      	LPM R17, Z // Se carga el valor inicial de z hacia el port, este siendo 0.
@@ -1116,6 +1119,7 @@ C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm(8)
 00004b 2ea1                      	MOV R10, R17
 00004c 2ec1                      	MOV R12, R17
                                  
+                                 	; Pines setup
 00004d e000                      	ldi r16, 0x00
 00004e b904                      	out ddrb, r16
 00004f 9a38                      	sbi DDRC, 0
@@ -1383,7 +1387,7 @@ C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm(8)
                                  Disp_Select:
 000139 9120 010e                 	lds r18, FA
 00013b fd21                      	sbrc r18, 1
-00013c 940c 014d                 	jmp alarma_c
+00013c 940c 014d                 	jmp alarma_c ; Si la alarma ha sido activada, salta a comparar
                                  	DMs:
 00013e fce0                      	sbrc r14, 0
 00013f 940c 0170                 	jmp DM_1
@@ -1414,9 +1418,9 @@ C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm(8)
 00015e f459                      	brne Alarma_no
 00015f 1783                      	cp r24, r19
 000160 f449                      	brne Alarma_no
-000161 3040                      	cpi r20, 0x00
+000161 3040                      	cpi r20, 0x00 ; Una vez comprueba que la hora es la misma, solo se activa cuando no han pasado segundos
 000162 f439                      	brne Alarma_no
-000163 9a2d                      	sbi portB, 5
+000163 9a2d                      	sbi portB, 5 ; Activa alarma
 000164 913f                      	pop r19
 000165 912f                      	pop r18
 000166 911f                      	pop r17
@@ -1433,7 +1437,7 @@ C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm(8)
                                  
                                  	
                                  
-                                 	DM_1:
+                                 	DM_1: ; MODO Mostrar dia
 000170 9488                      	clc
 000171 1f00                      	rol r16 ;Cambio de selector
 000172 3100                      	cpi r16, 0x10
@@ -1451,7 +1455,7 @@ C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm(8)
 00017d b908                      	out portc, r16
 00017e 9518                      	reti
                                  
-                                 	DM_2:
+                                 	DM_2: ; MODO Mostrar Fecha
 00017f 9488                      	clc
 000180 1f00                      	rol r16 ;Cambio de selector
 000181 3100                      	cpi r16, 0x10
@@ -1470,7 +1474,7 @@ C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm(8)
 00018d 9518                      	reti
                                  
                                  
-                                 	DM_3:
+                                 	DM_3: ; MODO Cambio de hora
 00018e 932f                      	push r18
 00018f 9120 0101                 	lds r18, MedioS
 000191 ff20                      	sbrs r18, 0
@@ -1499,7 +1503,7 @@ C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm(8)
 0001a7 9518                      	reti
                                  
                                  
-                                 	DM_4:
+                                 	DM_4: ; MODO Cambiar fecha
 0001a8 932f                      	push r18
 0001a9 9120 0101                 	lds r18, MedioS
 0001ab ff20                      	sbrs r18, 0
@@ -1531,7 +1535,7 @@ C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm(8)
 0001c2 912f                      	pop r18
 0001c3 940c 018e                 	jmp DM_3
                                  
-                                 	DM_5:
+                                 	DM_5: ; MODO Alarma
 0001c5 932f                      	push r18
 0001c6 9120 010e                 	lds r18, FA
 0001c8 ff21                      	sbrs r18, 1
@@ -1584,33 +1588,33 @@ C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm(8)
                                  
                                  DISP_LGC:
                                  
-                                 	M_1:
+                                 	M_1: ; Actualiza los valores del display de minutos, horas, dia o mes. Solo actualiza si hay cambio.
 0001fa 931f                      		push r17
 0001fb ff90                      		sbrs r25, 0
 0001fc 940c 0203                 		jmp dec_min
 0001fe 2e75                      		mov r7, r21
-0001ff 940e 04ba                 		call table_loop
+0001ff 940e 04c6                 		call table_loop
 000201 2e21                      		mov r2, r17
 000202 7f9e                      		cbr r25, 1
                                  		dec_min:
 000203 ff91                      		sbrs r25, 1
 000204 940c 020b                 		jmp hora
 000206 2e76                      		mov r7, r22
-000207 940e 04ba                 		call table_loop
+000207 940e 04c6                 		call table_loop
 000209 2e31                      		mov r3, r17
 00020a 7f9d                      		cbr r25, 2
                                  		hora:
 00020b ff92                      		sbrs r25, 2
 00020c 940c 0213                 		jmp dec_hora
 00020e 2e77                      		mov r7, r23
-00020f 940e 04ba                 		call table_loop
+00020f 940e 04c6                 		call table_loop
 000211 2e41                      		mov r4, r17
 000212 7f9b                      		cbr r25, 4
                                  		dec_hora:
 000213 ff93                      		sbrs r25, 3
 000214 940c 021b                 		jmp dia
 000216 2e78                      		mov r7, r24
-000217 940e 04ba                 		call table_loop
+000217 940e 04c6                 		call table_loop
 000219 2e51                      		mov r5, r17
 00021a 7f97                      		cbr r25, 8
                                  
@@ -1618,7 +1622,7 @@ C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm(8)
 00021b ff94                      		sbrs r25, 4
 00021c 940c 0223                 		jmp dec_dia
 00021e 2e7a                      		mov r7, r26
-00021f 940e 04ba                 		call table_loop
+00021f 940e 04c6                 		call table_loop
 000221 2e91                      		mov r9, r17
 000222 7e9f                      		cbr r25, 16
                                  
@@ -1626,7 +1630,7 @@ C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm(8)
 000223 ff95                      		sbrs r25, 5
 000224 940c 022b                 		jmp mes
 000226 2e7b                      		mov r7, r27
-000227 940e 04ba                 		call table_loop
+000227 940e 04c6                 		call table_loop
 000229 2ea1                      		mov r10, r17
 00022a 7d9f                      		cbr r25, 32
                                  
@@ -1634,7 +1638,7 @@ C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm(8)
 00022b ff96                      		sbrs r25, 6
 00022c 940c 0233                 		jmp dec_mes
 00022e 2e7c                      		mov r7, r28
-00022f 940e 04ba                 		call table_loop
+00022f 940e 04c6                 		call table_loop
 000231 2eb1                      		mov r11, r17
 000232 7b9f                      		cbr r25, 64
                                  
@@ -1642,7 +1646,7 @@ C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm(8)
 000233 ff97                      		sbrs r25, 7
 000234 940c 023d                 		jmp disp_fini
 000236 2e7d                      		mov r7, r29
-000237 940e 04ba                 		call table_loop
+000237 940e 04c6                 		call table_loop
 000239 2ec1                      		mov r12, r17
 00023a 7b9f                      		cbr r25, 64
                                  
@@ -1676,11 +1680,11 @@ C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm(8)
 000251 ff01                      	sbrs r16, 1
 000252 940c 02b9                 	jmp B_Up
 000254 ff02                      	sbrs r16, 2
-000255 940c 03a3                 	jmp B_Down
+000255 940c 03a9                 	jmp B_Down
 000257 ff03                      	sbrs r16, 3
-000258 940c 0480                 	jmp B_DigChange
+000258 940c 048c                 	jmp B_DigChange
 00025a ff04                      	sbrs r16, 4
-00025b 940c 0498                 	jmp M_CHANGE
+00025b 940c 04a4                 	jmp M_CHANGE
                                  
                                  	salir:
 00025d 911f                      	pop r17
@@ -1700,11 +1704,11 @@ C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm(8)
 00026c fce4                      		sbrc r14, 4
 00026d 940c 0272                 		jmp A_Set
                                  
-                                 		A_Off:
+                                 		A_Off: ; En modo 1, apaga la alarma si esta activa
 00026f 982d                      		cbi portb, 5
 000270 940c 025d                 		jmp salir
                                  
-                                 		A_Set:
+                                 		A_Set: ; Si esta en modo alarma, activa o reinica la alarma. Solo la activa si hubo cambios a la hora
 000272 932f                      		push r18
 000273 9120 010e                 		lds r18, FA
 000275 fd21                      		sbrc r18, 1
@@ -1722,16 +1726,16 @@ C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm(8)
 000286 925f                      		push r5
                                  	
 000287 2e75                      		mov r7, r21
-000288 940e 04ba                 		call table_loop
+000288 940e 04c6                 		call table_loop
 00028a 2e21                      		mov r2, r17
 00028b 2e76                      		mov r7, r22
-00028c 940e 04ba                 		call table_loop
+00028c 940e 04c6                 		call table_loop
 00028e 2e31                      		mov r3, r17
 00028f 2e77                      		mov r7, r23
-000290 940e 04ba                 		call table_loop
+000290 940e 04c6                 		call table_loop
 000292 2e41                      		mov r4, r17
 000293 2e78                      		mov r7, r24
-000294 940e 04ba                 		call table_loop
+000294 940e 04c6                 		call table_loop
 000296 2e51                      		mov r5, r17
                                  
 000297 9220 0106                 		sts D_AM, r2
@@ -1764,7 +1768,7 @@ C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm(8)
 0002b7 940c 025d                 		jmp salir
                                  
                                  
-                                 	B_Up:
+                                 	B_Up: ; Analiza en que modo esta y sube el digito correspondiente.
 0002b9 fce0                      		sbrc r14, 0
 0002ba 940c 025d                 		jmp salir
 0002bc fce1                      		sbrc r14, 1
@@ -1776,7 +1780,7 @@ C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm(8)
 0002c5 fce4                      		sbrc r14, 4
 0002c6 940c 0364                 		jmp A_Up
                                  
-                                 		HM_Up:
+                                 		HM_Up: ; Sube horas y minutos
 0002c8 932f                      		push r18
 0002c9 9120 0100                 		lds r18, DigSelect
 0002cb fd20                      		sbrc r18, 0
@@ -1820,7 +1824,7 @@ C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm(8)
 0002f0 2788                      			clr r24
 0002f1 940c 025d                 			jmp salir
                                  
-                                 		F_Up:
+                                 		F_Up: ; Sube fecha
 0002f3 932f                      		push r18
 0002f4 9120 0100                 		lds r18, DigSelect
 0002f6 fd20                      		sbrc r18, 0
@@ -1941,343 +1945,356 @@ C:\Users\laloj\Documents\Proyecto-1-Progra\Proyecto1Ger\Proyecto1Ger\main.asm(8)
                                  			A_Up:
 000364 932f                      			push r18
 000365 9120 010e                 			lds r18, FA
-000367 fd20                      			sbrc r18, 0
-000368 940c 0377                 			jmp A_Up_C
-00036a 9350 010a                 			sts PM, r21
-00036c 9360 010b                 			sts PDM, r22
-00036e 9370 010c                 			sts PH, r23
-000370 9380 010d                 			sts PDH, r24
-000372 9523                      			inc r18
-000373 9320 010e                 			sts FA, r18
-000375 940c 0377                 			jmp A_Up_C
+000367 fd21                      			sbrc r18, 1
+000368 940c 0381                 			jmp A_Up_Cancel
+00036a fd20                      			sbrc r18, 0
+00036b 940c 037a                 			jmp A_Up_C
+00036d 9350 010a                 			sts PM, r21
+00036f 9360 010b                 			sts PDM, r22
+000371 9370 010c                 			sts PH, r23
+000373 9380 010d                 			sts PDH, r24
+000375 9523                      			inc r18
+000376 9320 010e                 			sts FA, r18
+000378 940c 037a                 			jmp A_Up_C
                                  
                                  			A_Up_C:
-000377 9120 0100                 			lds r18, DigSelect
-000379 fd20                      			sbrc r18, 0
-00037a 940c 037e                 			jmp AM_Up
-00037c 940c 038d                 			jmp AH_Up
+00037a 9120 0100                 			lds r18, DigSelect
+00037c fd20                      			sbrc r18, 0
+00037d 940c 0384                 			jmp AM_Up
+00037f 940c 0393                 			jmp AH_Up
+                                 
+                                 			A_Up_Cancel:
+000381 912f                      			pop r18
+000382 940c 025d                 			jmp salir
                                  
                                  				AM_Up:
-00037e 912f                      				pop r18
-00037f 6091                      				sbr r25, 1
-000380 9553                      				inc r21
-000381 305a                      				cpi r21, 10
-000382 f441                      				brne escapeF
-000383 6092                      				sbr r25, 2
-000384 2755                      				clr r21
-000385 9563                      				inc r22
-000386 3066                      				cpi r22, 6
-000387 f419                      				brne escapeF
-000388 2766                      				clr r22
-000389 940c 025d                 				jmp salir
+000384 912f                      				pop r18
+000385 6091                      				sbr r25, 1
+000386 9553                      				inc r21
+000387 305a                      				cpi r21, 10
+000388 f441                      				brne escapeF
+000389 6092                      				sbr r25, 2
+00038a 2755                      				clr r21
+00038b 9563                      				inc r22
+00038c 3066                      				cpi r22, 6
+00038d f419                      				brne escapeF
+00038e 2766                      				clr r22
+00038f 940c 025d                 				jmp salir
                                  						
                                  						escapeF:
-00038b 940c 025d                 						jmp salir
+000391 940c 025d                 						jmp salir
                                  
                                  				AH_Up:
-00038d 912f                      				pop r18
-00038e 6094                      				sbr r25, 4
-00038f 9573                      				inc r23
-000390 3082                      				cpi r24, 2
-000391 f051                      				breq AH_Up_High
-000392 307a                      				cpi r23, 10
-000393 f7b9                      				brne escapeF
-000394 6098                      				sbr r25, 8
-000395 2777                      				clr r23
-000396 9583                      				inc r24
-000397 3086                      				cpi r24, 6
-000398 f791                      				brne escapeF
-000399 2788                      				clr r24
-00039a 940c 025d                 				jmp salir
+000393 912f                      				pop r18
+000394 6094                      				sbr r25, 4
+000395 9573                      				inc r23
+000396 3082                      				cpi r24, 2
+000397 f051                      				breq AH_Up_High
+000398 307a                      				cpi r23, 10
+000399 f7b9                      				brne escapeF
+00039a 6098                      				sbr r25, 8
+00039b 2777                      				clr r23
+00039c 9583                      				inc r24
+00039d 3086                      				cpi r24, 6
+00039e f791                      				brne escapeF
+00039f 2788                      				clr r24
+0003a0 940c 025d                 				jmp salir
                                  				AH_Up_High:
-00039c 3074                      				cpi r23, 4
-00039d f769                      				brne escapeF
-00039e 6098                      				sbr r25, 8
-00039f 2777                      				clr r23
-0003a0 2788                      				clr r24
-0003a1 940c 025d                 				jmp salir
+0003a2 3074                      				cpi r23, 4
+0003a3 f769                      				brne escapeF
+0003a4 6098                      				sbr r25, 8
+0003a5 2777                      				clr r23
+0003a6 2788                      				clr r24
+0003a7 940c 025d                 				jmp salir
                                  				
-                                 	B_Down:
-0003a3 fce0                      	sbrc r14, 0
-0003a4 940c 025d                 		jmp salir
-0003a6 fce1                      		sbrc r14, 1
-0003a7 940c 025d                 		jmp salir
-0003a9 fce2                      		sbrc r14, 2
-0003aa 940c 03b2                 		jmp HM_Down
-0003ac fce3                      		sbrc r14, 3
-0003ad 940c 03d9                 		jmp F_Down
-0003af fce4                      		sbrc r14, 4
-0003b0 940c 0449                 		jmp A_Down
+                                 	B_Down: ; Analiza en cual modo esta y decrementa el digito correspondiente.
+0003a9 fce0                      	sbrc r14, 0
+0003aa 940c 025d                 		jmp salir
+0003ac fce1                      		sbrc r14, 1
+0003ad 940c 025d                 		jmp salir
+0003af fce2                      		sbrc r14, 2
+0003b0 940c 03b8                 		jmp HM_Down
+0003b2 fce3                      		sbrc r14, 3
+0003b3 940c 03df                 		jmp F_Down
+0003b5 fce4                      		sbrc r14, 4
+0003b6 940c 044f                 		jmp A_Down
                                  
-                                 		HM_Down:
-0003b2 932f                      		push r18
-0003b3 9120 0100                 		lds r18, DigSelect
-0003b5 fd20                      		sbrc r18, 0
-0003b6 940c 03ba                 		jmp M_Down
-0003b8 940c 03c7                 		jmp H_Down
+                                 		HM_Down: ; Decrementa hora y minutos
+0003b8 932f                      		push r18
+0003b9 9120 0100                 		lds r18, DigSelect
+0003bb fd20                      		sbrc r18, 0
+0003bc 940c 03c0                 		jmp M_Down
+0003be 940c 03cd                 		jmp H_Down
                                  
                                  			M_Down:
-0003ba 912f                      			pop r18
-0003bb 6091                      			sbr r25, 1
-0003bc 955a                      			dec r21
-0003bd 3f5f                      			cpi r21, 0xff
-0003be f4c1                      			brne escapeC
-0003bf 6092                      			sbr r25, 2
-0003c0 e059                      			ldi r21, 0x09
-0003c1 956a                      			dec r22
-0003c2 3f6f                      			cpi r22, 0xff
-0003c3 f499                      			brne escapeC
-0003c4 e065                      			ldi r22, 0x05
-0003c5 940c 025d                 			jmp salir
+0003c0 912f                      			pop r18
+0003c1 6091                      			sbr r25, 1
+0003c2 955a                      			dec r21
+0003c3 3f5f                      			cpi r21, 0xff
+0003c4 f4c1                      			brne escapeC
+0003c5 6092                      			sbr r25, 2
+0003c6 e059                      			ldi r21, 0x09
+0003c7 956a                      			dec r22
+0003c8 3f6f                      			cpi r22, 0xff
+0003c9 f499                      			brne escapeC
+0003ca e065                      			ldi r22, 0x05
+0003cb 940c 025d                 			jmp salir
                                  
                                  			H_Down:
-0003c7 912f                      			pop r18
-0003c8 6094                      			sbr r25, 4
-0003c9 957a                      			dec r23
-0003ca 3f7f                      			cpi r23, 0xff
-0003cb f459                      			brne escapeC
-0003cc 6098                      			sbr r25, 8
-0003cd 958a                      			dec r24
-0003ce 3f8f                      			cpi r24, 0xff
-0003cf f019                      			breq H_Down_High
-0003d0 e079                      			ldi r23, 0x09
-0003d1 940c 025d                 			jmp salir
+0003cd 912f                      			pop r18
+0003ce 6094                      			sbr r25, 4
+0003cf 957a                      			dec r23
+0003d0 3f7f                      			cpi r23, 0xff
+0003d1 f459                      			brne escapeC
+0003d2 6098                      			sbr r25, 8
+0003d3 958a                      			dec r24
+0003d4 3f8f                      			cpi r24, 0xff
+0003d5 f019                      			breq H_Down_High
+0003d6 e079                      			ldi r23, 0x09
+0003d7 940c 025d                 			jmp salir
                                  			H_Down_High:
-0003d3 e082                      			ldi r24, 0x02
-0003d4 e073                      			ldi r23, 0x03
-0003d5 940c 025d                 			jmp salir
+0003d9 e082                      			ldi r24, 0x02
+0003da e073                      			ldi r23, 0x03
+0003db 940c 025d                 			jmp salir
                                  			
                                  					escapeC:
-0003d7 940c 025d                 					jmp salir
+0003dd 940c 025d                 					jmp salir
                                  
-                                 		F_Down:
-0003d9 932f                      		push r18
-0003da 9120 0100                 		lds r18, DigSelect
-0003dc fd20                      		sbrc r18, 0
-0003dd 940c 03e1                 		jmp Mo_Down
-0003df 940c 03f9                 		jmp D_Down
+                                 		F_Down: ; Decrementa fecha
+0003df 932f                      		push r18
+0003e0 9120 0100                 		lds r18, DigSelect
+0003e2 fd20                      		sbrc r18, 0
+0003e3 940c 03e7                 		jmp Mo_Down
+0003e5 940c 03ff                 		jmp D_Down
                                  
                                  			Mo_Down:
-0003e1 912f                      			pop r18
-0003e2 27bb                      			clr r27
-0003e3 e0a1                      			ldi r26, 0x01
-0003e4 6190                      			sbr r25, 16
-0003e5 6290                      			sbr r25, 32
-0003e6 6490                      			sbr r25, 64
-0003e7 95ca                      			dec r28
-0003e8 ffd0                      			sbrs r29, 0
-0003e9 f041                      			breq M_Down_High
-0003ea ffc7                      			sbrs r28, 7
-0003eb 940c 025d                 			jmp salir
-0003ed 6890                      			sbr r25, 128
-0003ee e0c9                      			ldi r28, 0x09
-0003ef 95da                      			dec r29
-0003f0 940c 025d                 			jmp salir
+0003e7 912f                      			pop r18
+0003e8 27bb                      			clr r27
+0003e9 e0a1                      			ldi r26, 0x01
+0003ea 6190                      			sbr r25, 16
+0003eb 6290                      			sbr r25, 32
+0003ec 6490                      			sbr r25, 64
+0003ed 95ca                      			dec r28
+0003ee ffd0                      			sbrs r29, 0
+0003ef f041                      			breq M_Down_High
+0003f0 ffc7                      			sbrs r28, 7
+0003f1 940c 025d                 			jmp salir
+0003f3 6890                      			sbr r25, 128
+0003f4 e0c9                      			ldi r28, 0x09
+0003f5 95da                      			dec r29
+0003f6 940c 025d                 			jmp salir
                                  			M_Down_High:
-0003f2 30c0                      			cpi r28, 0x00
-0003f3 f719                      			brne escapeC
-0003f4 6890                      			sbr r25, 128
-0003f5 e0c2                      			ldi r28, 0x02
-0003f6 e0d1                      			ldi r29, 0x01
-0003f7 940c 025d                 			jmp salir
+0003f8 30c0                      			cpi r28, 0x00
+0003f9 f719                      			brne escapeC
+0003fa 6890                      			sbr r25, 128
+0003fb e0c2                      			ldi r28, 0x02
+0003fc e0d1                      			ldi r29, 0x01
+0003fd 940c 025d                 			jmp salir
                                  
                                  			D_Down:
-0003f9 912f                      			pop r18
-0003fa 6190                      			sbr r25, 16
-0003fb 95aa                      			dec r26
-0003fc 30d1                      			cpi r29, 0x01
-0003fd f071                      			breq D_Down_High
-0003fe fdc3                      			sbrc r28, 3
-0003ff 940c 040c                 			jmp D_Down_High
-000401 30c2                      			cpi r28, 0x02
-000402 f119                      			breq D_Down_Feb
-000403 30b0                      			cpi r27, 0
-000404 f199                      			breq D_Down_Low
-000405 3faf                      			cpi r26, 0xff
-000406 f579                      			brne escapeE
-000407 e0a9                      			ldi r26, 9
-000408 95ba                      			dec r27
-000409 6290                      			sbr r25, 32
-00040a 940c 025d                 			jmp salir
+0003ff 912f                      			pop r18
+000400 6190                      			sbr r25, 16
+000401 95aa                      			dec r26
+000402 30d1                      			cpi r29, 0x01
+000403 f071                      			breq D_Down_High
+000404 fdc3                      			sbrc r28, 3
+000405 940c 0412                 			jmp D_Down_High
+000407 30c2                      			cpi r28, 0x02
+000408 f119                      			breq D_Down_Feb
+000409 30b0                      			cpi r27, 0
+00040a f189                      			breq D_Down_Low
+00040b 3faf                      			cpi r26, 0xff
+00040c f681                      			brne escapeC
+00040d e0a9                      			ldi r26, 9
+00040e 95ba                      			dec r27
+00040f 6290                      			sbr r25, 32
+000410 940c 025d                 			jmp salir
                                  			
                                  			D_Down_High:
-00040c 30b0                      			cpi r27, 0
-00040d f039                      			breq D_Down_High1
-00040e 3faf                      			cpi r26, 0xff
-00040f f531                      			brne escapeE
-000410 e0a9                      			ldi r26, 0x09
-000411 95ba                      			dec r27
-000412 6290                      			sbr r25, 32
-000413 940c 025d                 			jmp salir
+000412 30b0                      			cpi r27, 0
+000413 f039                      			breq D_Down_High1
+000414 3faf                      			cpi r26, 0xff
+000415 f5b9                      			brne escapeE
+000416 e0a9                      			ldi r26, 0x09
+000417 95ba                      			dec r27
+000418 6290                      			sbr r25, 32
+000419 940c 025d                 			jmp salir
                                  			D_Down_High1:
-000415 30a0                      			cpi r26, 0
-000416 f4f9                      			brne escapeE
-000417 ffc0                      			sbrs r28, 0
-000418 940c 041c                 			jmp D_Down_High_Par
-00041a 940c 0421                 			jmp D_Down_High_Impar
+00041b 30a0                      			cpi r26, 0
+00041c f581                      			brne escapeE
+00041d ffc0                      			sbrs r28, 0
+00041e 940c 0422                 			jmp D_Down_High_Par
+000420 940c 0427                 			jmp D_Down_High_Impar
                                  			D_Down_High_Par:
-00041c 6290                      			sbr r25, 32
-00041d e0a1                      			ldi r26, 0x01
-00041e e0b3                      			ldi r27, 0x03
-00041f 940c 025d                 			jmp salir
+000422 6290                      			sbr r25, 32
+000423 e0a1                      			ldi r26, 0x01
+000424 e0b3                      			ldi r27, 0x03
+000425 940c 025d                 			jmp salir
                                  			D_Down_High_Impar:
-000421 6290                      			sbr r25, 32
-000422 27aa                      			clr r26
-000423 e0b3                      			ldi r27, 0x03
-000424 940c 025d                 			jmp salir
+000427 6290                      			sbr r25, 32
+000428 27aa                      			clr r26
+000429 e0b3                      			ldi r27, 0x03
+00042a 940c 025d                 			jmp salir
                                  
                                  				
                                  
                                  			D_Down_Feb:
-000426 30b0                      			cpi r27, 0
-000427 f039                      			breq D_Down_Feb_C
-000428 3faf                      			cpi r26, 0xff
-000429 f461                      			brne escapeE
-00042a e0a9                      			ldi r26, 0x09
-00042b 6290                      			sbr r25, 32
-00042c 95ba                      			dec r27
-00042d 940c 025d                 			jmp salir
+00042c 30b0                      			cpi r27, 0
+00042d f039                      			breq D_Down_Feb_C
+00042e 3faf                      			cpi r26, 0xff
+00042f f4e9                      			brne escapeE
+000430 e0a9                      			ldi r26, 0x09
+000431 6290                      			sbr r25, 32
+000432 95ba                      			dec r27
+000433 940c 025d                 			jmp salir
                                  					
                                  			D_Down_Feb_C:
-00042f 30a0                      			cpi r26, 0
-000430 f429                      			brne escapeE
-000431 e0a8                      			ldi r26, 0x08
-000432 6290                      			sbr r25, 32
-000433 e0b2                      			ldi r27, 0x02
-000434 940c 025d                 			jmp salir
-                                 					escapeE:
-000436 940c 025d                 					jmp salir
+000435 30a0                      			cpi r26, 0
+000436 f4b1                      			brne escapeE
+000437 e0a8                      			ldi r26, 0x08
+000438 6290                      			sbr r25, 32
+000439 e0b2                      			ldi r27, 0x02
+00043a 940c 025d                 			jmp salir
+                                 					
                                  
                                  			D_Down_Low:
-000438 30a0                      			cpi r26, 0
-000439 f7e1                      			brne escapeE
-00043a ffc0                      			sbrs r28, 0
-00043b 940c 043f                 			jmp D_Down_Low_Par
-00043d 940c 0444                 			jmp D_Down_Low_Impar
+00043c 30a0                      			cpi r26, 0
+00043d f479                      			brne escapeE
+00043e ffc0                      			sbrs r28, 0
+00043f 940c 0443                 			jmp D_Down_Low_Par
+000441 940c 0448                 			jmp D_Down_Low_Impar
                                  			D_Down_Low_Par:
-00043f 6290                      			sbr r25, 32
-000440 27aa                      			clr r26
-000441 e0b3                      			ldi r27, 0x03
-000442 940c 025d                 			jmp salir
+000443 6290                      			sbr r25, 32
+000444 27aa                      			clr r26
+000445 e0b3                      			ldi r27, 0x03
+000446 940c 025d                 			jmp salir
                                  			D_Down_Low_Impar:
-000444 6290                      			sbr r25, 32
-000445 e0a1                      			ldi r26, 0x01
-000446 e0b3                      			ldi r27, 0x03
-000447 940c 025d                 			jmp salir
+000448 6290                      			sbr r25, 32
+000449 e0a1                      			ldi r26, 0x01
+00044a e0b3                      			ldi r27, 0x03
+00044b 940c 025d                 			jmp salir
+                                 					escapeE:
+00044d 940c 025d                 					jmp salir
                                  
-                                 			A_Down:
-000449 932f                      			push r18
-00044a 9120 010e                 			lds r18, FA
-00044c fd20                      			sbrc r18, 0
-00044d 940c 045c                 			jmp A_Down_C
-00044f 9350 010a                 			sts PM, r21
-000451 9360 010b                 			sts PDM, r22
-000453 9370 010c                 			sts PH, r23
-000455 9380 010d                 			sts PDH, r24
-000457 9523                      			inc r18
-000458 9320 010e                 			sts FA, r18
-00045a 940c 045c                 			jmp A_Down_C
+                                 			A_Down: ; Decrementa fecha
+00044f 932f                      			push r18
+000450 9120 010e                 			lds r18, FA
+000452 fd21                      			sbrc r18, 1
+000453 940c 0381                 			jmp A_Up_Cancel
+000455 fd20                      			sbrc r18, 0
+000456 940c 0465                 			jmp A_Down_C
+000458 9350 010a                 			sts PM, r21
+00045a 9360 010b                 			sts PDM, r22
+00045c 9370 010c                 			sts PH, r23
+00045e 9380 010d                 			sts PDH, r24
+000460 9523                      			inc r18
+000461 9320 010e                 			sts FA, r18
+000463 940c 0465                 			jmp A_Down_C
                                  
                                  			A_Down_C:
-00045c 9120 0100                 			lds r18, DigSelect
-00045e fd20                      			sbrc r18, 0
-00045f 940c 0463                 			jmp AM_Down
-000461 940c 0470                 			jmp AH_Down
+000465 9120 0100                 			lds r18, DigSelect
+000467 fd20                      			sbrc r18, 0
+000468 940c 046f                 			jmp AM_Down
+00046a 940c 047c                 			jmp AH_Down
+                                 
+                                 			A_Down_Cancel:
+00046c 912f                      			pop r18
+00046d 940c 025d                 			jmp salir
                                  
                                  				AM_Down:
-000463 912f                      				pop r18
-000464 6091                      				sbr r25, 1
-000465 955a                      				dec r21
-000466 3f5f                      				cpi r21, 0xff
-000467 f671                      				brne escapeE
-000468 6092                      				sbr r25, 2
-000469 e059                      				ldi r21, 0x09
-00046a 956a                      				dec r22
-00046b 3f6f                      				cpi r22, 0xff
-00046c f649                      				brne escapeE
-00046d e065                      				ldi r22, 0x05
-00046e 940c 025d                 				jmp salir
+00046f 912f                      				pop r18
+000470 6091                      				sbr r25, 1
+000471 955a                      				dec r21
+000472 3f5f                      				cpi r21, 0xff
+000473 f6c9                      				brne escapeE
+000474 6092                      				sbr r25, 2
+000475 e059                      				ldi r21, 0x09
+000476 956a                      				dec r22
+000477 3f6f                      				cpi r22, 0xff
+000478 f6a1                      				brne escapeE
+000479 e065                      				ldi r22, 0x05
+00047a 940c 025d                 				jmp salir
                                  
                                  				AH_Down:
-000470 912f                      				pop r18
-000471 6094                      				sbr r25, 4
-000472 957a                      				dec r23
-000473 3f7f                      				cpi r23, 0xff
-000474 f609                      				brne escapeE
-000475 6098                      				sbr r25, 8
-000476 958a                      				dec r24
-000477 3f8f                      				cpi r24, 0xff
-000478 f019                      				breq AH_Down_High
-000479 e079                      				ldi r23, 0x09
-00047a 940c 025d                 				jmp salir
+00047c 912f                      				pop r18
+00047d 6094                      				sbr r25, 4
+00047e 957a                      				dec r23
+00047f 3f7f                      				cpi r23, 0xff
+000480 f661                      				brne escapeE
+000481 6098                      				sbr r25, 8
+000482 958a                      				dec r24
+000483 3f8f                      				cpi r24, 0xff
+000484 f019                      				breq AH_Down_High
+000485 e079                      				ldi r23, 0x09
+000486 940c 025d                 				jmp salir
                                  				AH_Down_High:
-00047c e082                      				ldi r24, 0x02
-00047d e073                      				ldi r23, 0x03
-00047e 940c 025d                 				jmp salir
+000488 e082                      				ldi r24, 0x02
+000489 e073                      				ldi r23, 0x03
+00048a 940c 025d                 				jmp salir
                                  
                                  
-                                 	B_DigChange:
-000480 fce0                      		sbrc r14, 0
-000481 940c 025d                 		jmp salir
-000483 fce1                      		sbrc r14, 1
-000484 940c 025d                 		jmp salir
-000486 fce2                      		sbrc r14, 2
-000487 940c 048d                 		jmp DigChange
-000489 fce3                      		sbrc r14, 3
-00048a 940c 048d                 		jmp DigChange
-00048c fce4                      		sbrc r14, 4
+                                 	B_DigChange: ; Cambia el digito que afecta arriba y abajo
+00048c fce0                      		sbrc r14, 0
+00048d 940c 025d                 		jmp salir
+00048f fce1                      		sbrc r14, 1
+000490 940c 025d                 		jmp salir
+000492 fce2                      		sbrc r14, 2
+000493 940c 0499                 		jmp DigChange
+000495 fce3                      		sbrc r14, 3
+000496 940c 0499                 		jmp DigChange
+000498 fce4                      		sbrc r14, 4
                                  
                                  		DigChange:
-00048d 932f                      		push r18
-00048e 9120 0100                 		lds r18, DigSelect
-000490 0f22                      		lsl r18
-000491 fd22                      		sbrc r18, 2
-000492 e021                      		ldi r18, 0x01
-000493 9320 0100                 		sts DigSelect, r18
-000495 912f                      		pop r18
-000496 940c 025d                 		jmp salir
+000499 932f                      		push r18
+00049a 9120 0100                 		lds r18, DigSelect
+00049c 0f22                      		lsl r18
+00049d fd22                      		sbrc r18, 2
+00049e e021                      		ldi r18, 0x01
+00049f 9320 0100                 		sts DigSelect, r18
+0004a1 912f                      		pop r18
+0004a2 940c 025d                 		jmp salir
                                  
-                                     M_CHANGE:
-000498 0cee                      		lsl r14
-000499 fce5                      		sbrc r14, 5
-00049a 940c 049e                 		jmp modreset
-00049c 940c 025d                 		jmp salir
+                                     M_CHANGE: ; Cambia el modo
+0004a4 0cee                      		lsl r14
+0004a5 fce5                      		sbrc r14, 5
+0004a6 940c 04aa                 		jmp modreset
+0004a8 940c 025d                 		jmp salir
                                  		modreset:
-00049e 932f                      		push r18
-00049f 9120 010e                 		lds r18, FA
-0004a1 fd20                      		sbrc r18, 0
-0004a2 940c 04a9                 		jmp A_Cancel
-0004a4 912f                      		pop r18
-0004a5 e011                      		ldi r17, 0x01
-0004a6 2ee1                      		mov r14, r17
-0004a7 940c 025d                 		jmp salir
+0004aa 932f                      		push r18
+0004ab 9120 010e                 		lds r18, FA
+0004ad fd20                      		sbrc r18, 0
+0004ae 940c 04b5                 		jmp A_Cancel
+0004b0 912f                      		pop r18
+0004b1 e011                      		ldi r17, 0x01
+0004b2 2ee1                      		mov r14, r17
+0004b3 940c 025d                 		jmp salir
                                  		A_cancel:
-0004a9 2722                      		clr r18
-0004aa 9320 010e                 		sts FA, r18
-0004ac 912f                      		pop r18
-0004ad 9150 010a                 		lds r21, PM
-0004af 9160 010b                 		lds r22, PDM
-0004b1 9170 010c                 		lds r23, PH
-0004b3 9180 010d                 		lds r24, PDH
-0004b5 609f                      		sbr r25, 15
-0004b6 e011                      		ldi r17, 0x01
-0004b7 2ee1                      		mov r14, r17
-0004b8 940c 025d                 		jmp salir
+0004b5 2722                      		clr r18
+0004b6 9320 010e                 		sts FA, r18
+0004b8 912f                      		pop r18
+0004b9 9150 010a                 		lds r21, PM
+0004bb 9160 010b                 		lds r22, PDM
+0004bd 9170 010c                 		lds r23, PH
+0004bf 9180 010d                 		lds r24, PDH
+0004c1 609f                      		sbr r25, 15
+0004c2 e011                      		ldi r17, 0x01
+0004c3 2ee1                      		mov r14, r17
+0004c4 940c 025d                 		jmp salir
                                  	
                                  
                                  table_loop:
-0004ba e4ee                      	LDI ZL, LOW(tab7seg<<1)
-0004bb e0f0                      	LDI ZH, HIGH(tab7seg<<1)
+0004c6 e4ee                      	LDI ZL, LOW(tab7seg<<1)
+0004c7 e0f0                      	LDI ZH, HIGH(tab7seg<<1)
                                  table_loop1:
-0004bc 1478                      	cp r7, r8
-0004bd f021                      	breq tab_fini
-0004be 9483                      	inc r8
-0004bf 9631                      	adiw Z, 1
-0004c0 940c 04bc                 	jmp table_loop1
+0004c8 1478                      	cp r7, r8
+0004c9 f021                      	breq tab_fini
+0004ca 9483                      	inc r8
+0004cb 9631                      	adiw Z, 1
+0004cc 940c 04c8                 	jmp table_loop1
                                  	tab_fini:
-0004c2 9114                      	lpm r17, z
-0004c3 2488                      	clr r8
-0004c4 9508                      	ret
+0004ce 9114                      	lpm r17, z
+0004cf 2488                      	clr r8
+0004d0 9508                      	ret
                                  
 
 
@@ -2298,7 +2315,7 @@ counted separately from r26..r31 here.
 "ATmega328P" register use summary:
 x  :   0 y  :   0 z  :   3 r0 :   0 r1 :   0 r2 :  13 r3 :  13 r4 :  13 
 r5 :  13 r6 :   1 r7 :  14 r8 :   4 r9 :   4 r10:   4 r11:   4 r12:   4 
-r13:   0 r14:  30 r15:  11 r16:  88 r17:  33 r18: 105 r19:  10 r20:   5 
+r13:   0 r14:  30 r15:  11 r16:  88 r17:  33 r18: 109 r19:  10 r20:   5 
 r21:  24 r22:  25 r23:  33 r24:  28 r25:  92 r26:  63 r27:  45 r28:  33 
 r29:  14 r30:   2 r31:   2 
 Registers used: 30 out of 35 (85.7%)
@@ -2313,13 +2330,13 @@ brvs  :   0 bset  :   0 bst   :   0 call  :  14 cbi   :   4 cbr   :  10
 clc   :   5 clh   :   0 cli   :   1 cln   :   0 clr   :  51 cls   :   0 
 clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   5 cpc   :   0 
 cpi   :  83 cpse  :   0 dec   :  14 eor   :   0 fmul  :   0 fmuls :   0 
-fmulsu:   0 icall :   0 ijmp  :   0 in    :   1 inc   :  45 jmp   : 135 
+fmulsu:   0 icall :   0 ijmp  :   0 in    :   1 inc   :  45 jmp   : 139 
 ld    :   0 ldd   :   0 ldi   :  82 lds   :  32 lpm   :   4 lsl   :   2 
 lsr   :   0 mov   :  39 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
-neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :  35 pop   :  50 
+neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :  35 pop   :  52 
 push  :  30 rcall :   0 ret   :   3 reti  :  10 rjmp  :   5 rol   :   5 
 ror   :   0 sbc   :   0 sbci  :   0 sbi   :  12 sbic  :   0 sbis  :   0 
-sbiw  :   0 sbr   :  73 sbrc  :  64 sbrs  :  24 sec   :   0 seh   :   0 
+sbiw  :   0 sbr   :  73 sbrc  :  66 sbrs  :  24 sec   :   0 seh   :   0 
 sei   :   1 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
 sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :  39 
 sub   :   0 subi  :   0 swap  :   0 tst   :   0 wdr   :   0 
@@ -2328,7 +2345,7 @@ Instructions used: 33 out of 113 (29.2%)
 "ATmega328P" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x00098a   2372     16   2388   32768   7.3%
+[.cseg] 0x000000 0x0009a2   2396     16   2412   32768   7.4%
 [.dseg] 0x000100 0x00010f      0     15     15    2048   0.7%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 
